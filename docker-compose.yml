@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: unishop
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  api:
+    build: ./backend/UniShop.Api
+    environment:
+      ConnectionStrings__Default: Host=db;Database=unishop;Username=postgres;Password=postgres
+    ports:
+      - "5000:8080"
+    depends_on:
+      - db
+
+  web:
+    build: ./frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - api
+
+volumes:
+  dbdata:
