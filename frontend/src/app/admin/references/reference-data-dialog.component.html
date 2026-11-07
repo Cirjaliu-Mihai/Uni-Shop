@@ -1,0 +1,50 @@
+<h2 mat-dialog-title>{{ title }}</h2>
+<mat-dialog-content>
+  <form [formGroup]="form" class="reference-form" (ngSubmit)="save()" novalidate>
+    <mat-form-field appearance="outline">
+      <mat-label>Name *</mat-label>
+      <input matInput formControlName="name" [maxlength]="maxNameLength" />
+      <mat-error *ngIf="form.get('name')?.hasError('required')">Enter a name.</mat-error>
+      <mat-error *ngIf="form.get('name')?.hasError('maxlength')">Name is too long.</mat-error>
+    </mat-form-field>
+
+    <mat-form-field *ngIf="data.kind === 'category'" appearance="outline">
+      <mat-label>Description</mat-label>
+      <textarea matInput rows="3" formControlName="description" maxlength="500"></textarea>
+    </mat-form-field>
+
+    <ng-container *ngIf="data.kind === 'supplier'">
+      <mat-form-field appearance="outline">
+        <mat-label>Contact email *</mat-label>
+        <input matInput type="email" formControlName="contactEmail" />
+        <mat-error *ngIf="form.get('contactEmail')?.invalid"
+          >Enter a valid contact email.</mat-error
+        >
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Phone *</mat-label>
+        <input matInput formControlName="phone" />
+        <mat-error *ngIf="form.get('phone')?.hasError('required')">Enter a phone number.</mat-error>
+      </mat-form-field>
+    </ng-container>
+
+    <ng-container *ngIf="data.kind === 'delivery-method'">
+      <mat-form-field appearance="outline">
+        <mat-label>Price (RON) *</mat-label>
+        <input matInput type="number" min="0" step="0.01" formControlName="price" />
+        <mat-error *ngIf="form.get('price')?.invalid">Price must be zero or more.</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Estimated days *</mat-label>
+        <input matInput type="number" min="1" max="365" step="1" formControlName="estimatedDays" />
+        <mat-error *ngIf="form.get('estimatedDays')?.invalid">Enter 1 to 365 days.</mat-error>
+      </mat-form-field>
+    </ng-container>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()">Cancel</button>
+  <button mat-flat-button color="primary" type="button" [disabled]="form.invalid" (click)="save()">
+    {{ data.entity ? 'Save changes' : 'Create' }}
+  </button>
+</mat-dialog-actions>

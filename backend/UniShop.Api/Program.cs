@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 using UniShop.Api.Domain;
 using UniShop.Api.Middleware;
 using UniShop.Api.Options;
@@ -44,6 +45,8 @@ builder.Services.AddOptions<JwtSettings>()
 builder.Services.AddSingleton<ITokenService, TokenService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IAdminProductService, AdminProductService>();
+builder.Services.AddScoped<IAdminReferenceDataService, AdminReferenceDataService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -90,6 +93,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseExceptionHandler();

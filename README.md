@@ -58,7 +58,7 @@ docker compose up --build
 Development defaults seed the admin account `admin@unishop.local` with password `Admin1234`. The Development JWT key is local-only; do not use these credentials or that key in production.
 
 Aplicatia va fi disponibila la `http://localhost:4200`, iar API-ul la `http://localhost:5000`.
-PostgreSQL este disponibil pe portul `5433`. Pentru crearea contului de administrator prin Compose, seteaza variabilele `UNISHOP_ADMIN_EMAIL` si `UNISHOP_ADMIN_PASSWORD` in mediul shell inainte de pornire.
+PostgreSQL este disponibil pe portul `5433`. In Development, documentatia OpenAPI este la `http://localhost:5000/openapi/v1.json`, iar Scalar UI la `http://localhost:5000/scalar`.
 
 ## Backend si date initiale
 
@@ -72,6 +72,14 @@ dotnet user-secrets set "JwtSettings:Key" "replace-with-a-random-secret-of-at-le
 
 Pentru baza de date pornita separat, ruleaza `dotnet ef database update`, apoi `dotnet run` din directorul `backend/UniShop.Api`.
 Endpoint-urile de autentificare sunt `POST /api/auth/register`, `POST /api/auth/login` si `GET /api/auth/me`.
+
+## Administrare
+
+Autentifica-te cu `admin@unishop.local` / `Admin1234`, apoi deschide `http://localhost:4200/admin`. Poti gestiona produsele, categoriile, furnizorii si metodele de livrare. API-ul de administrare foloseste rolul `Admin`; incercarile de stergere a unei categorii sau a unui furnizor folosit de produse raspund cu `409 Conflict` si un mesaj explicativ.
+
+## Postman
+
+Importa `docs/postman/UniShop.postman_collection.json`. Colectia foloseste adresa implicita `http://localhost:5000`, autentifica-te prin folderul `Auth` (scriptul de login pastreaza tokenul in variabila colectiei), apoi ruleaza folderele `Products` si `Admin`. Valorile de referinta implicite sunt ID-urile seed-ului Development; actualizeaza variabilele `categoryId`, `supplierId` sau `deliveryMethodId` daca baza de date a fost modificata.
 
 Ruleaza testele API cu PostgreSQL in Docker si testele Angular astfel:
 

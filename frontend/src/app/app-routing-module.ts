@@ -1,14 +1,17 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { adminGuard } from './core/auth/auth.guards';
-import { AdminHomeComponent } from './core/components/admin-home/admin-home.component';
 
 const routes: Routes = [
   {
     path: 'account',
     loadChildren: () => import('./account/account.module').then((module) => module.AccountModule),
   },
-  { path: 'admin', component: AdminHomeComponent, canActivate: [adminGuard] },
+  {
+    path: 'admin',
+    canActivate: [adminGuard],
+    loadChildren: () => import('./admin/admin.module').then((module) => module.AdminModule),
+  },
   {
     path: '',
     loadChildren: () => import('./catalog/catalog.module').then((module) => module.CatalogModule),

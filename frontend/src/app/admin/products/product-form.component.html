@@ -1,0 +1,181 @@
+<section class="admin-page form-page">
+  <a class="back-link" routerLink="/admin"><mat-icon>arrow_back</mat-icon>Back to products</a>
+
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">CATALOG MANAGEMENT</p>
+      <h1>{{ productId === null ? 'Add product' : 'Edit product' }}</h1>
+      <p>Product information appears in the public catalog.</p>
+    </div>
+  </header>
+
+  <div *ngIf="loading" class="form-state">
+    <mat-spinner diameter="34"></mat-spinner><span>Loading product…</span>
+  </div>
+  <div *ngIf="!loading && errorMessage" class="form-error" role="alert">
+    <mat-icon>error_outline</mat-icon><span>{{ errorMessage }}</span>
+  </div>
+
+  <form *ngIf="!loading && !errorMessage" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <section class="form-section">
+      <div class="section-heading">
+        <h2>Product details</h2>
+        <span>Required fields marked with *</span>
+      </div>
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Product name *</mat-label>
+          <input matInput formControlName="name" maxlength="200" />
+          <mat-error *ngIf="form.get('name')?.hasError('required')"
+            >Enter a product name.</mat-error
+          >
+          <mat-error *ngIf="form.get('name')?.hasError('maxlength')"
+            >Name must be 200 characters or fewer.</mat-error
+          >
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Description *</mat-label>
+          <textarea matInput rows="4" formControlName="description" maxlength="4000"></textarea>
+          <mat-error *ngIf="form.get('description')?.hasError('required')"
+            >Enter a description.</mat-error
+          >
+          <mat-error *ngIf="form.get('description')?.hasError('maxlength')"
+            >Description must be 4000 characters or fewer.</mat-error
+          >
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Price (RON) *</mat-label>
+          <input matInput type="number" min="0.01" step="0.01" formControlName="price" />
+          <mat-error *ngIf="form.get('price')?.invalid">Price must be greater than zero.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Stock *</mat-label>
+          <input matInput type="number" min="0" step="1" formControlName="stock" />
+          <mat-error *ngIf="form.get('stock')?.invalid">Stock must be zero or more.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Image URL</mat-label>
+          <input
+            matInput
+            type="url"
+            formControlName="imageUrl"
+            maxlength="2048"
+            placeholder="https://example.com/image.jpg"
+          />
+          <mat-error *ngIf="form.get('imageUrl')?.invalid"
+            >Enter a valid HTTP or HTTPS URL.</mat-error
+          >
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Category *</mat-label>
+          <mat-select formControlName="categoryId">
+            <mat-option *ngFor="let category of categories" [value]="category.id">{{
+              category.name
+            }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="form.get('categoryId')?.hasError('required')"
+            >Choose a category.</mat-error
+          >
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Supplier *</mat-label>
+          <mat-select formControlName="supplierId">
+            <mat-option *ngFor="let supplier of suppliers" [value]="supplier.id">{{
+              supplier.name
+            }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="form.get('supplierId')?.hasError('required')"
+            >Choose a supplier.</mat-error
+          >
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Delivery methods *</mat-label>
+          <mat-select formControlName="deliveryMethodIds" multiple>
+            <mat-option *ngFor="let method of deliveryMethods" [value]="method.id">
+              {{ method.name }} ·
+              {{
+                method.price === 0 ? 'Free' : (method.price | currency: 'RON' : 'code' : '1.2-2')
+              }}
+            </mat-option>
+          </mat-select>
+          <mat-error
+            *ngIf="
+              form.get('deliveryMethodIds')?.hasError('required') ||
+              form.get('deliveryMethodIds')?.hasError('minlength')
+            "
+          >
+            Select at least one delivery method.
+          </mat-error>
+        </mat-form-field>
+
+        <mat-checkbox formControlName="isActive" class="active-toggle"
+          >Visible in public catalog</mat-checkbox
+        >
+      </div>
+    </section>
+
+    <section class="form-section specification-section">
+      <div class="section-heading">
+        <div>
+          <h2>Specifications</h2>
+          <p>Add technical attributes as key/value pairs.</p>
+        </div>
+        <button mat-stroked-button type="button" (click)="addSpecification()">
+          <mat-icon>add</mat-icon>Add row
+        </button>
+      </div>
+      <div formArrayName="specifications" class="specification-rows">
+        <div
+          *ngFor="let specification of specifications.controls; let index = index"
+          [formGroupName]="index"
+          class="specification-row"
+        >
+          <mat-form-field appearance="outline">
+            <mat-label>Key</mat-label>
+            <input matInput formControlName="key" placeholder="e.g. Memory" />
+            <mat-error *ngIf="specification.get('key')?.hasError('required')"
+              >Enter a key.</mat-error
+            >
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Value</mat-label>
+            <input matInput formControlName="value" placeholder="e.g. 16 GB" />
+            <mat-error *ngIf="specification.get('value')?.hasError('required')"
+              >Enter a value.</mat-error
+            >
+          </mat-form-field>
+          <button
+            mat-icon-button
+            type="button"
+            matTooltip="Remove specification"
+            aria-label="Remove specification"
+            (click)="removeSpecification(index)"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <p *ngIf="specifications.length === 0" class="empty-specifications">
+          No specifications added.
+        </p>
+      </div>
+    </section>
+
+    <div *ngIf="errorMessage" class="form-error" role="alert">
+      <mat-icon>error_outline</mat-icon><span>{{ errorMessage }}</span>
+    </div>
+    <div class="form-actions">
+      <button mat-button type="button" (click)="cancel()">Cancel</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="saving">
+        <mat-spinner *ngIf="saving" diameter="18"></mat-spinner>
+        {{ saving ? 'Saving…' : productId === null ? 'Create product' : 'Save changes' }}
+      </button>
+    </div>
+  </form>
+</section>

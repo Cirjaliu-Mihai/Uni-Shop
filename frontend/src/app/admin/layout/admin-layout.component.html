@@ -1,0 +1,41 @@
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <a class="admin-brand" routerLink="/">
+      <img src="/favicon.svg?v=2" alt="" />
+      <span>UniShop</span>
+    </a>
+    <p class="sidebar-label">MANAGEMENT</p>
+    <nav class="admin-nav" aria-label="Admin navigation">
+      <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <mat-icon>inventory_2</mat-icon>
+        <span>Products</span>
+      </a>
+      <a routerLink="/admin/references" routerLinkActive="active">
+        <mat-icon>tune</mat-icon>
+        <span>Reference data</span>
+      </a>
+    </nav>
+    <div class="sidebar-bottom">
+      <a routerLink="/" class="store-link"
+        ><mat-icon>storefront</mat-icon><span>View store</span></a
+      >
+      <button type="button" class="logout-link" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Log out</span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <header class="admin-topbar">
+      <div>
+        <p>UNISHOP / ADMIN</p>
+        <strong>{{ auth.currentUser?.fullName || auth.currentUser?.email }}</strong>
+      </div>
+      <span class="admin-role">Administrator</span>
+    </header>
+    <section class="admin-content">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+</div>

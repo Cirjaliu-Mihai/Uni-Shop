@@ -1,0 +1,9 @@
+.reference-form {
+  display: grid;
+  width: min(390px, 72vw);
+  padding-top: 8px;
+}
+
+mat-form-field {
+  width: 100%;
+}

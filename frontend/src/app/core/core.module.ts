@@ -5,20 +5,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { AdminHomeComponent } from './components/admin-home/admin-home.component';
 import { AppShellComponent } from './components/app-shell/app-shell.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { HomeComponent } from './components/home/home.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 
 @NgModule({
-  declarations: [
-    AdminHomeComponent,
-    AppShellComponent,
-    FooterComponent,
-    HomeComponent,
-    NavbarComponent,
-  ],
+  declarations: [AppShellComponent, FooterComponent, HomeComponent, NavbarComponent],
   imports: [
     CommonModule,
     RouterModule,
@@ -27,6 +20,6 @@ import { NavbarComponent } from './components/navbar/navbar.component';
     MatMenuModule,
     MatToolbarModule,
   ],
-  exports: [AdminHomeComponent, AppShellComponent, HomeComponent],
+  exports: [AppShellComponent, HomeComponent],
 })
 export class CoreModule {}
