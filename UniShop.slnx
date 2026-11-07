@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="backend/UniShop.Api/UniShop.Api.csproj" />
+  <Project Path="backend/UniShop.Tests/UniShop.Tests.csproj" />
+</Solution>

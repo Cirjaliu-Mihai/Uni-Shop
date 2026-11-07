@@ -20,8 +20,6 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__Default: Host=db;Database=unishop;Username=postgres;Password=postgres
-      Admin__Email: ${UNISHOP_ADMIN_EMAIL:-}
-      Admin__Password: ${UNISHOP_ADMIN_PASSWORD:-}
     ports:
       - "5000:8080"
     depends_on:

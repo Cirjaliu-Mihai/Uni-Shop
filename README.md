@@ -40,7 +40,7 @@ Fiecare produs contine: nume, descriere, specificatii, pret, stoc, furnizor, mod
 | ORM            | Entity Framework Core                 |
 | Autentificare  | ASP.NET Core Identity, JWT            |
 | Plati          | Stripe (mod test)                     |
-| Testare        | Postman (verificare manuala API)      |
+| Testare        | xUnit, Postman                        |
 | Containerizare | Docker, Docker Compose                |
 
 ## Arhitectura
@@ -55,19 +55,30 @@ cd uni-shop
 docker compose up --build
 ```
 
+Development defaults seed the admin account `admin@unishop.local` with password `Admin1234`. The Development JWT key is local-only; do not use these credentials or that key in production.
+
 Aplicatia va fi disponibila la `http://localhost:4200`, iar API-ul la `http://localhost:5000`.
 PostgreSQL este disponibil pe portul `5433`. Pentru crearea contului de administrator prin Compose, seteaza variabilele `UNISHOP_ADMIN_EMAIL` si `UNISHOP_ADMIN_PASSWORD` in mediul shell inainte de pornire.
 
 ## Backend si date initiale
 
-In dezvoltare, API-ul aplica migratiile si insereaza datele initiale la pornire. Configureaza credentialele administratorului cu user-secrets (din directorul `backend/UniShop.Api`):
+In dezvoltare, API-ul aplica migratiile si insereaza datele initiale la pornire. Pentru a inlocui credentialele locale implicite, configureaza user-secrets din directorul `backend/UniShop.Api`:
 
 ```bash
 dotnet user-secrets set "Admin:Email" "admin@unishop.local"
-dotnet user-secrets set "Admin:Password" "replace-with-a-strong-local-password"
+dotnet user-secrets set "Admin:Password" "LocalPass123"
+dotnet user-secrets set "JwtSettings:Key" "replace-with-a-random-secret-of-at-least-32-bytes"
 ```
 
 Pentru baza de date pornita separat, ruleaza `dotnet ef database update`, apoi `dotnet run` din directorul `backend/UniShop.Api`.
+Endpoint-urile de autentificare sunt `POST /api/auth/register`, `POST /api/auth/login` si `GET /api/auth/me`.
+
+Ruleaza testele API cu PostgreSQL in Docker si testele Angular astfel:
+
+```bash
+dotnet test
+npm --prefix frontend test -- --watch=false
+```
 
 ## Structura proiectului
 

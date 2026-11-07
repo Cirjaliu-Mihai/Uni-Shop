@@ -1,0 +1,80 @@
+<section class="auth-page">
+  <div class="auth-visual register-visual">
+    <div class="visual-copy">
+      <p class="visual-eyebrow">A thoughtful little shop</p>
+      <h1>Make everyday a little easier.</h1>
+      <p>Create an account to keep your essentials and order updates together.</p>
+    </div>
+    <span class="visual-caption">UNISHOP / NEW MEMBERS</span>
+  </div>
+
+  <div class="auth-content">
+    <div class="auth-form-wrap">
+      <p class="form-kicker">JOIN UNISHOP</p>
+      <h2>Create account</h2>
+      <p class="form-intro">A few details and you're ready to explore.</p>
+
+      <div *ngIf="errorMessage" class="form-alert" role="alert">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <mat-form-field appearance="outline">
+          <mat-label>Full name</mat-label>
+          <input matInput formControlName="fullName" autocomplete="name" />
+          <mat-icon matSuffix>person_outline</mat-icon>
+          <mat-error *ngIf="form.controls.fullName.hasError('required')"
+            >Enter your name.</mat-error
+          >
+          <mat-error *ngIf="form.controls.fullName.hasError('maxlength')"
+            >Name must be 200 characters or fewer.</mat-error
+          >
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Email address</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="email" />
+          <mat-icon matSuffix>mail_outline</mat-icon>
+          <mat-error *ngIf="form.controls.email.hasError('required')"
+            >Enter your email address.</mat-error
+          >
+          <mat-error *ngIf="form.controls.email.hasError('email')"
+            >Enter a valid email address.</mat-error
+          >
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Password</mat-label>
+          <input matInput type="password" formControlName="password" autocomplete="new-password" />
+          <mat-icon matSuffix>lock</mat-icon>
+          <mat-error *ngIf="form.controls.password.hasError('required')"
+            >Create a password.</mat-error
+          >
+          <mat-error
+            *ngIf="
+              form.controls.password.hasError('minlength') ||
+              form.controls.password.hasError('pattern')
+            "
+          >
+            Use at least 8 characters, including a letter and a number.
+          </mat-error>
+        </mat-form-field>
+
+        <button
+          mat-flat-button
+          color="primary"
+          class="submit-button"
+          type="submit"
+          [disabled]="submitting"
+        >
+          <mat-spinner *ngIf="submitting" diameter="19"></mat-spinner>
+          <span>{{ submitting ? 'Creating account…' : 'Create account' }}</span>
+          <mat-icon *ngIf="!submitting">arrow_forward</mat-icon>
+        </button>
+      </form>
+
+      <p class="form-switch">Already have an account? <a routerLink="/account/login">Sign in</a></p>
+    </div>
+  </div>
+</section>

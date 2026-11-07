@@ -1,0 +1,107 @@
+.site-toolbar {
+  position: relative;
+  z-index: 2;
+  height: 76px;
+  background: rgba(248, 250, 246, 0.96);
+  color: #193b32;
+  border-bottom: 1px solid #e2e8e1;
+}
+
+.toolbar-inner {
+  display: flex;
+  align-items: center;
+  width: min(1180px, calc(100% - 48px));
+  height: 100%;
+  margin: 0 auto;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 25px;
+  text-decoration: none;
+}
+
+.brand-mark {
+  display: block;
+  width: 38px;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.primary-nav {
+  margin-left: 52px;
+}
+
+.active-link {
+  color: #17694f;
+}
+
+.account-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.login-link,
+.admin-link {
+  color: #31574b;
+}
+
+.register-link {
+  border-radius: 4px;
+}
+
+.user-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 240px;
+}
+
+.user-avatar {
+  display: grid;
+  width: 29px;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  background: #e4eee6;
+  color: #185b45;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.user-name {
+  overflow: hidden;
+  max-width: 140px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .site-toolbar {
+    height: 66px;
+  }
+
+  .toolbar-inner {
+    width: calc(100% - 28px);
+  }
+
+  .primary-nav {
+    display: none;
+  }
+
+  .user-name,
+  .admin-link {
+    display: none;
+  }
+
+  .register-link {
+    min-width: unset;
+    padding-inline: 10px;
+  }
+}

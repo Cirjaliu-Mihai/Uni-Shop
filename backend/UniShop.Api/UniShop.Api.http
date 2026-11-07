@@ -1,6 +1,36 @@
-@UniShop.Api_HostAddress = http://localhost:5243
+@baseUrl = http://localhost:5000
+@token = {{login.response.body.token}}
 
-GET {{UniShop.Api_HostAddress}}/weatherforecast/
+### Register a client
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+	"fullName": "Test Client",
+	"email": "client@example.test",
+	"password": "ClientPass123"
+}
+
+### Log in
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+	"email": "admin@unishop.local",
+	"password": "<configured-admin-password>"
+}
+
+### Get current account
+GET {{baseUrl}}/api/auth/me
 Accept: application/json
+Authorization: Bearer {{token}}
 
 ###
+
+### Check admin authorization
+GET {{baseUrl}}/api/admin/access-check
+Authorization: Bearer {{token}}
+
+### Weather forecast sample
+GET {{baseUrl}}/weatherforecast/
+Accept: application/json

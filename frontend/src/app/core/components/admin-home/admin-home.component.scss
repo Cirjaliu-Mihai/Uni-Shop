@@ -1,0 +1,24 @@
+.admin-page {
+  width: min(900px, calc(100% - 48px));
+  margin: 80px auto;
+}
+
+.eyebrow {
+  color: #d26c48;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+h1 {
+  margin: 14px 0;
+  color: #173b31;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 48px;
+  font-weight: 400;
+}
+
+p:not(.eyebrow) {
+  max-width: 560px;
+  color: #53665c;
+  line-height: 1.7;
+}

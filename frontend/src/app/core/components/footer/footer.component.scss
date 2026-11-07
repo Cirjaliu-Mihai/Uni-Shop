@@ -1,0 +1,27 @@
+.site-footer {
+  border-top: 1px solid #e2e8e1;
+  color: #64736c;
+  font-size: 13px;
+}
+
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 21px 0;
+}
+
+.footer-inner span:first-child {
+  color: #294d41;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .footer-inner {
+    width: calc(100% - 28px);
+    flex-wrap: wrap;
+    gap: 8px 18px;
+  }
+}

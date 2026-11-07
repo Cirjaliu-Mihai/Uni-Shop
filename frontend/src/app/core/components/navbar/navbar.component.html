@@ -1,0 +1,49 @@
+<mat-toolbar class="site-toolbar">
+  <div class="toolbar-inner">
+    <a class="brand" routerLink="/" aria-label="UniShop home">
+      <img class="brand-mark" src="/favicon.svg?v=2" alt="" />
+      <span>UniShop</span>
+    </a>
+
+    <nav class="primary-nav" aria-label="Main navigation">
+      <a
+        mat-button
+        routerLink="/"
+        routerLinkActive="active-link"
+        [routerLinkActiveOptions]="{ exact: true }"
+        >Discover</a
+      >
+    </nav>
+
+    <div class="account-actions">
+      <ng-container *ngIf="auth.currentUser$ | async as user; else signedOut">
+        <a *ngIf="user.roles.includes('Admin')" mat-button routerLink="/admin" class="admin-link">
+          <mat-icon>space_dashboard</mat-icon>
+          Admin
+        </a>
+        <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
+          <span class="user-avatar">{{ user.fullName.charAt(0) || user.email.charAt(0) }}</span>
+          <span class="user-name">{{ user.fullName || user.email }}</span>
+          <mat-icon>expand_more</mat-icon>
+        </button>
+        <mat-menu #userMenu="matMenu">
+          <a mat-menu-item routerLink="/account/profile">
+            <mat-icon>person</mat-icon>
+            <span>My account</span>
+          </a>
+          <button mat-menu-item type="button" (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Log out</span>
+          </button>
+        </mat-menu>
+      </ng-container>
+
+      <ng-template #signedOut>
+        <a mat-button routerLink="/account/login" class="login-link">Log in</a>
+        <a mat-flat-button color="primary" routerLink="/account/register" class="register-link"
+          >Create account</a
+        >
+      </ng-template>
+    </div>
+  </div>
+</mat-toolbar>

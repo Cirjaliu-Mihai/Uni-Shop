@@ -1,0 +1,14 @@
+<section class="profile-page" *ngIf="currentUser$ | async as user">
+  <p class="eyebrow">YOUR ACCOUNT</p>
+  <h1>Welcome, {{ user.fullName }}.</h1>
+  <div class="profile-details">
+    <div>
+      <span>Email address</span>
+      <strong>{{ user.email }}</strong>
+    </div>
+    <div>
+      <span>Account type</span>
+      <strong>{{ user.roles.join(', ') }}</strong>
+    </div>
+  </div>
+</section>
