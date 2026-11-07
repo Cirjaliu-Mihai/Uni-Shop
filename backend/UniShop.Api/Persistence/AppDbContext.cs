@@ -1,0 +1,19 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using UniShop.Api.Domain;
+
+namespace UniShop.Api.Persistence;
+
+public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<ApplicationUser>(options)
+{
+    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
+    public DbSet<DeliveryMethod> DeliveryMethods => Set<DeliveryMethod>();
+    public DbSet<Product> Products => Set<Product>();
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+        builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+    }
+}

@@ -40,7 +40,7 @@ Fiecare produs contine: nume, descriere, specificatii, pret, stoc, furnizor, mod
 | ORM            | Entity Framework Core                 |
 | Autentificare  | ASP.NET Core Identity, JWT            |
 | Plati          | Stripe (mod test)                     |
-| Testare        | xUnit, Postman                        |
+| Testare        | Postman (verificare manuala API)      |
 | Containerizare | Docker, Docker Compose                |
 
 ## Arhitectura
@@ -56,6 +56,18 @@ docker compose up --build
 ```
 
 Aplicatia va fi disponibila la `http://localhost:4200`, iar API-ul la `http://localhost:5000`.
+PostgreSQL este disponibil pe portul `5433`. Pentru crearea contului de administrator prin Compose, seteaza variabilele `UNISHOP_ADMIN_EMAIL` si `UNISHOP_ADMIN_PASSWORD` in mediul shell inainte de pornire.
+
+## Backend si date initiale
+
+In dezvoltare, API-ul aplica migratiile si insereaza datele initiale la pornire. Configureaza credentialele administratorului cu user-secrets (din directorul `backend/UniShop.Api`):
+
+```bash
+dotnet user-secrets set "Admin:Email" "admin@unishop.local"
+dotnet user-secrets set "Admin:Password" "replace-with-a-strong-local-password"
+```
+
+Pentru baza de date pornita separat, ruleaza `dotnet ef database update`, apoi `dotnet run` din directorul `backend/UniShop.Api`.
 
 ## Structura proiectului
 
