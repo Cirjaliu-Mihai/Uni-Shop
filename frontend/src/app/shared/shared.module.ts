@@ -21,6 +21,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
 import { ProductCardComponent } from './components/product-card/product-card.component';
+import { WishlistToggleComponent } from './components/wishlist-toggle/wishlist-toggle.component';
 
 const materialModules = [
   MatButtonModule,
@@ -43,7 +44,7 @@ const materialModules = [
 ];
 
 @NgModule({
-  declarations: [ConfirmDialogComponent, ProductCardComponent],
+  declarations: [ConfirmDialogComponent, ProductCardComponent, WishlistToggleComponent],
   imports: [CommonModule, ReactiveFormsModule, RouterModule, ...materialModules],
   exports: [
     CommonModule,
@@ -51,6 +52,7 @@ const materialModules = [
     RouterModule,
     ConfirmDialogComponent,
     ProductCardComponent,
+    WishlistToggleComponent,
     ...materialModules,
   ],
 })

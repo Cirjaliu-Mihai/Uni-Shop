@@ -10,6 +10,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<DeliveryMethod> DeliveryMethods => Set<DeliveryMethod>();
     public DbSet<Product> Products => Set<Product>();
+    public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
+    public DbSet<Cart> Carts => Set<Cart>();
+    public DbSet<CartItem> CartItems => Set<CartItem>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

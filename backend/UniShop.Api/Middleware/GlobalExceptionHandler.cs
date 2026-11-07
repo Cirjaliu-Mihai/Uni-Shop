@@ -13,17 +13,22 @@ public sealed class GlobalExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
-        var conflict = exception as AdminConflictException;
-        if (conflict is null)
+        var conflictMessage = exception switch
+        {
+            AdminConflictException adminConflict => adminConflict.Message,
+            ShoppingConflictException shoppingConflict => shoppingConflict.Message,
+            _ => null
+        };
+        if (conflictMessage is null)
         {
             logger.LogError(exception, "Unhandled exception while processing {Path}.", httpContext.Request.Path);
         }
         else
         {
-            logger.LogWarning("Admin conflict while processing {Path}: {Message}", httpContext.Request.Path, conflict.Message);
+            logger.LogWarning("Conflict while processing {Path}: {Message}", httpContext.Request.Path, conflictMessage);
         }
 
-        var statusCode = conflict is null ? StatusCodes.Status500InternalServerError : StatusCodes.Status409Conflict;
+        var statusCode = conflictMessage is null ? StatusCodes.Status500InternalServerError : StatusCodes.Status409Conflict;
         httpContext.Response.StatusCode = statusCode;
         await problemDetailsService.WriteAsync(new ProblemDetailsContext
         {
@@ -31,8 +36,8 @@ public sealed class GlobalExceptionHandler(
             ProblemDetails = new ProblemDetails
             {
                 Status = statusCode,
-                Title = conflict is null ? "An unexpected error occurred." : "Conflict",
-                Detail = conflict?.Message ?? "The request could not be completed.",
+                Title = conflictMessage is null ? "An unexpected error occurred." : "Conflict",
+                Detail = conflictMessage ?? "The request could not be completed.",
                 Instance = httpContext.Request.Path
             }
         });

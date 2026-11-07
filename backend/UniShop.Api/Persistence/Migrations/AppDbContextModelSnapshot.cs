@@ -241,6 +241,51 @@ namespace UniShop.Api.Persistence.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("UniShop.Api.Domain.Cart", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("Carts", (string)null);
+                });
+
+            modelBuilder.Entity("UniShop.Api.Domain.CartItem", b =>
+                {
+                    b.Property<int>("CartId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.HasKey("CartId", "ProductId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("CartItems", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CartItems_Quantity_Positive", "\"Quantity\" > 0");
+                        });
+                });
+
             modelBuilder.Entity("UniShop.Api.Domain.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -386,6 +431,25 @@ namespace UniShop.Api.Persistence.Migrations
                     b.ToTable("Suppliers", (string)null);
                 });
 
+            modelBuilder.Entity("UniShop.Api.Domain.WishlistItem", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId", "ProductId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("WishlistItems", (string)null);
+                });
+
             modelBuilder.Entity("DeliveryMethodProduct", b =>
                 {
                     b.HasOne("UniShop.Api.Domain.DeliveryMethod", null)
@@ -452,6 +516,36 @@ namespace UniShop.Api.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("UniShop.Api.Domain.Cart", b =>
+                {
+                    b.HasOne("UniShop.Api.Domain.ApplicationUser", "User")
+                        .WithOne("Cart")
+                        .HasForeignKey("UniShop.Api.Domain.Cart", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("UniShop.Api.Domain.CartItem", b =>
+                {
+                    b.HasOne("UniShop.Api.Domain.Cart", "Cart")
+                        .WithMany("Items")
+                        .HasForeignKey("CartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("UniShop.Api.Domain.Product", "Product")
+                        .WithMany("CartItems")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cart");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("UniShop.Api.Domain.Product", b =>
                 {
                     b.HasOne("UniShop.Api.Domain.Category", "Category")
@@ -471,9 +565,47 @@ namespace UniShop.Api.Persistence.Migrations
                     b.Navigation("Supplier");
                 });
 
+            modelBuilder.Entity("UniShop.Api.Domain.WishlistItem", b =>
+                {
+                    b.HasOne("UniShop.Api.Domain.Product", "Product")
+                        .WithMany("WishlistItems")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("UniShop.Api.Domain.ApplicationUser", "User")
+                        .WithMany("WishlistItems")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("UniShop.Api.Domain.ApplicationUser", b =>
+                {
+                    b.Navigation("Cart");
+
+                    b.Navigation("WishlistItems");
+                });
+
+            modelBuilder.Entity("UniShop.Api.Domain.Cart", b =>
+                {
+                    b.Navigation("Items");
+                });
+
             modelBuilder.Entity("UniShop.Api.Domain.Category", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("UniShop.Api.Domain.Product", b =>
+                {
+                    b.Navigation("CartItems");
+
+                    b.Navigation("WishlistItems");
                 });
 
             modelBuilder.Entity("UniShop.Api.Domain.Supplier", b =>

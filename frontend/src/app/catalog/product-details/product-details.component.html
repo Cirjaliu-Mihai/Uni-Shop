@@ -30,6 +30,20 @@
       <p class="detail-price">{{ item.price | currency: 'RON' : 'code' : '1.2-2' }}</p>
       <p class="detail-description">{{ item.description }}</p>
 
+      <div class="detail-actions">
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          [disabled]="item.stock < 1"
+          (click)="addToCart(item)"
+        >
+          <mat-icon>add_shopping_cart</mat-icon>
+          Add to cart
+        </button>
+        <app-wishlist-toggle [productId]="item.id"></app-wishlist-toggle>
+      </div>
+
       <div class="availability" [class.unavailable]="item.stock === 0">
         <span class="availability-dot"></span>
         <strong>{{ item.stock > 0 ? 'In stock' : 'Out of stock' }}</strong>

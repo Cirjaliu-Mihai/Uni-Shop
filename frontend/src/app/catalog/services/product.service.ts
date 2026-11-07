@@ -32,4 +32,9 @@ export class ProductService {
   getProduct(id: number): Observable<ProductDetails> {
     return this.http.get<ProductDetails>(`${apiUrl}/${id}`);
   }
+
+  getProductsByIds(ids: number[]): Observable<ProductListItem[]> {
+    const params = new HttpParams().set('ids', ids.join(','));
+    return this.http.get<ProductListItem[]>(`${apiUrl}/by-ids`, { params });
+  }
 }

@@ -24,4 +24,18 @@
       <p class="product-price">{{ product.price | currency: 'RON' : 'code' : '1.2-2' }}</p>
     </div>
   </a>
+  <div class="product-actions">
+    <button
+      mat-icon-button
+      color="primary"
+      type="button"
+      matTooltip="Add to cart"
+      [attr.aria-label]="'Add ' + product.name + ' to cart'"
+      [disabled]="product.stock < 1"
+      (click)="addToCart()"
+    >
+      <mat-icon>add_shopping_cart</mat-icon>
+    </button>
+    <app-wishlist-toggle [productId]="product.id"></app-wishlist-toggle>
+  </div>
 </article>

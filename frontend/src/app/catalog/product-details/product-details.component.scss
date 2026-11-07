@@ -93,6 +93,22 @@
   line-height: 1.75;
 }
 
+.detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 21px;
+}
+
+.detail-actions > button:first-child {
+  min-height: 44px;
+  border-radius: 4px;
+}
+
+.detail-actions > button:first-child mat-icon {
+  margin-right: 5px;
+}
+
 .availability {
   display: flex;
   align-items: center;

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
+import { CartService } from '../../../shopping/services/cart.service';
 
 @Component({
   selector: 'app-navbar',
@@ -11,6 +12,7 @@ import { AuthService } from '../../auth/auth.service';
 export class NavbarComponent {
   constructor(
     readonly auth: AuthService,
+    readonly cart: CartService,
     private readonly router: Router,
   ) {}
 

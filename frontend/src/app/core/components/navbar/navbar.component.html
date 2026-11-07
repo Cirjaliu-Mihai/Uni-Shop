@@ -1,7 +1,6 @@
 <mat-toolbar class="site-toolbar">
   <div class="toolbar-inner">
     <a class="brand" routerLink="/" aria-label="UniShop home">
-      <img class="brand-mark" src="/favicon.svg?v=2" alt="" />
       <span>UniShop</span>
     </a>
 
@@ -16,6 +15,19 @@
     </nav>
 
     <div class="account-actions">
+      <a mat-button routerLink="/wishlist" class="shopping-link" aria-label="Wishlist">
+        <mat-icon>favorite_border</mat-icon>
+        <span class="shopping-label">Wishlist</span>
+      </a>
+      <a mat-button routerLink="/cart" class="shopping-link" aria-label="Cart">
+        <span class="cart-icon-wrap">
+          <mat-icon>shopping_cart</mat-icon>
+          <ng-container *ngIf="cart.itemCount$ | async as count">
+            <span *ngIf="count > 0" class="cart-count">{{ count }}</span>
+          </ng-container>
+        </span>
+        <span class="shopping-label">Cart</span>
+      </a>
       <ng-container *ngIf="auth.currentUser$ | async as user; else signedOut">
         <a *ngIf="user.roles.includes('Admin')" mat-button routerLink="/admin" class="admin-link">
           <mat-icon>space_dashboard</mat-icon>

@@ -1,0 +1,61 @@
+<main class="shopping-page">
+  <header class="shopping-heading">
+    <div>
+      <p class="eyebrow">SAVED FOR LATER</p>
+      <h1>Your wishlist</h1>
+    </div>
+    <a mat-button routerLink="/">Continue shopping <mat-icon>arrow_forward</mat-icon></a>
+  </header>
+
+  <div *ngIf="loading$ | async" class="wishlist-state" role="status">
+    <mat-spinner diameter="32"></mat-spinner>
+    <span>Loading your wishlist…</span>
+  </div>
+
+  <ng-container *ngIf="items$ | async as items">
+    <div *ngIf="!(loading$ | async) && items.length === 0" class="empty-state">
+      <mat-icon>favorite_border</mat-icon>
+      <h2>Your wishlist is empty</h2>
+      <p>Save products you like and come back to them here.</p>
+      <a mat-flat-button color="primary" routerLink="/">Explore the catalog</a>
+    </div>
+
+    <section *ngIf="items.length > 0" class="wishlist-list" aria-label="Wishlist items">
+      <article *ngFor="let item of items" class="wishlist-row">
+        <a class="wishlist-image" [routerLink]="['/products', item.productId]">
+          <img *ngIf="item.imageUrl; else noImage" [src]="item.imageUrl" [alt]="item.name" />
+          <ng-template #noImage><mat-icon>inventory_2</mat-icon></ng-template>
+        </a>
+        <div class="wishlist-info">
+          <span>{{ item.categoryName }}</span>
+          <a [routerLink]="['/products', item.productId]">{{ item.name }}</a>
+          <strong>{{ item.price | currency: 'RON' : 'code' : '1.2-2' }}</strong>
+        </div>
+        <span class="stock-badge" [class.out-of-stock]="item.stock < 1">
+          {{ item.stock > 0 ? item.stock + ' in stock' : 'Out of stock' }}
+        </span>
+        <div class="wishlist-actions">
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="item.stock < 1 || busyProductId === item.productId"
+            (click)="moveToCart(item)"
+          >
+            <mat-icon>add_shopping_cart</mat-icon>Move to cart
+          </button>
+          <button
+            mat-icon-button
+            type="button"
+            [disabled]="busyProductId === item.productId"
+            [attr.aria-label]="'Remove ' + item.name"
+            matTooltip="Remove from wishlist"
+            (click)="remove(item)"
+          >
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </div>
+      </article>
+    </section>
+  </ng-container>
+</main>

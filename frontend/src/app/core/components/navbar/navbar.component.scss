@@ -18,18 +18,11 @@
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 0;
   color: inherit;
   font-family: 'DM Serif Display', Georgia, serif;
-  font-size: 25px;
+  font-size: 27px;
   text-decoration: none;
-}
-
-.brand-mark {
-  display: block;
-  width: 38px;
-  aspect-ratio: 1;
-  object-fit: contain;
 }
 
 .primary-nav {
@@ -48,8 +41,52 @@
 }
 
 .login-link,
-.admin-link {
+.admin-link,
+.shopping-link {
   color: #31574b;
+}
+
+.shopping-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding-inline: 8px;
+}
+
+.cart-icon-wrap {
+  position: relative;
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  place-items: center;
+}
+
+.shopping-link mat-icon {
+  margin: 0;
+}
+
+.cart-icon-wrap > mat-icon {
+  transform: translateY(6px);
+}
+
+.cart-count {
+  position: absolute;
+  top: -5px;
+  right: -7px;
+  display: grid;
+  min-width: 17px;
+  height: 17px;
+  place-items: center;
+  padding: 0 4px;
+  border: 1px solid #fbfcf8;
+  border-radius: 10px;
+  background: #c94f38;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .register-link {
@@ -96,7 +133,8 @@
   }
 
   .user-name,
-  .admin-link {
+  .admin-link,
+  .shopping-label {
     display: none;
   }
 

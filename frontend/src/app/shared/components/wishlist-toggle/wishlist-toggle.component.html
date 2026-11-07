@@ -1,0 +1,17 @@
+<button
+  mat-icon-button
+  type="button"
+  class="wishlist-button"
+  [class.wished]="(wishlist.wishedIds$ | async)?.has(productId)"
+  [disabled]="busy"
+  [attr.aria-label]="
+    ((wishlist.wishedIds$ | async)?.has(productId) ? 'Remove from' : 'Add to') + ' wishlist'
+  "
+  [attr.aria-pressed]="(wishlist.wishedIds$ | async)?.has(productId) ?? false"
+  matTooltip="Wishlist"
+  (click)="toggle()"
+>
+  <mat-icon>{{
+    (wishlist.wishedIds$ | async)?.has(productId) ? 'favorite' : 'favorite_border'
+  }}</mat-icon>
+</button>

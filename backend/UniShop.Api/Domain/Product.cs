@@ -17,4 +17,6 @@ public class Product
     public int SupplierId { get; set; }
     public Supplier Supplier { get; set; } = null!;
     public ICollection<DeliveryMethod> DeliveryMethods { get; set; } = new List<DeliveryMethod>();
+    public ICollection<WishlistItem> WishlistItems { get; set; } = new List<WishlistItem>();
+    public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
 }

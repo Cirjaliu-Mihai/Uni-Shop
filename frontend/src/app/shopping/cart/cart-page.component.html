@@ -1,0 +1,98 @@
+<main class="shopping-page">
+  <header class="shopping-heading">
+    <div>
+      <p class="eyebrow">YOUR SELECTION</p>
+      <h1>Your cart</h1>
+    </div>
+    <a mat-button routerLink="/">Continue shopping <mat-icon>arrow_forward</mat-icon></a>
+  </header>
+
+  <ng-container *ngIf="cart$ | async as cart">
+    <div *ngIf="cart.items.length === 0" class="empty-state">
+      <mat-icon>shopping_cart</mat-icon>
+      <h2>Your cart is empty</h2>
+      <p>Find something useful in the catalog and it will be waiting here.</p>
+      <a mat-flat-button color="primary" routerLink="/">Explore the catalog</a>
+    </div>
+
+    <div *ngIf="cart.items.length > 0" class="cart-layout">
+      <section class="cart-items" aria-label="Cart items">
+        <div *ngIf="cart.hasStockWarnings" class="stock-warning" role="status">
+          <mat-icon>warning_amber</mat-icon>
+          <span>Some quantities exceed current stock. Update them before checkout.</span>
+        </div>
+        <article *ngFor="let item of cart.items" class="cart-line">
+          <a class="line-image" [routerLink]="['/products', item.productId]">
+            <img *ngIf="item.imageUrl; else noImage" [src]="item.imageUrl" [alt]="item.name" />
+            <ng-template #noImage><mat-icon>inventory_2</mat-icon></ng-template>
+          </a>
+          <div class="line-info">
+            <span class="line-category">{{ item.categoryName || 'Catalog item' }}</span>
+            <a class="line-name" [routerLink]="['/products', item.productId]">{{ item.name }}</a>
+            <span class="line-price"
+              >{{ item.price | currency: 'RON' : 'code' : '1.2-2' }} each</span
+            >
+            <span *ngIf="item.exceedsStock" class="line-stock-warning"
+              >Only {{ item.stock }} currently available</span
+            >
+          </div>
+          <div class="quantity-control" [attr.aria-label]="'Quantity for ' + item.name">
+            <button
+              mat-icon-button
+              type="button"
+              aria-label="Decrease quantity"
+              [disabled]="item.quantity <= 1 || loadingProductId === item.productId"
+              (click)="changeQuantity(item, item.quantity - 1)"
+            >
+              <mat-icon>remove</mat-icon>
+            </button>
+            <span>{{ item.quantity }}</span>
+            <button
+              mat-icon-button
+              type="button"
+              aria-label="Increase quantity"
+              [disabled]="item.quantity >= item.stock || loadingProductId === item.productId"
+              (click)="changeQuantity(item, item.quantity + 1)"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
+          </div>
+          <strong class="line-total">{{
+            item.lineTotal | currency: 'RON' : 'code' : '1.2-2'
+          }}</strong>
+          <button
+            mat-icon-button
+            type="button"
+            class="remove-button"
+            [attr.aria-label]="'Remove ' + item.name"
+            matTooltip="Remove item"
+            (click)="remove(item)"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </article>
+        <button mat-button type="button" class="clear-cart" (click)="clear()">Clear cart</button>
+      </section>
+
+      <aside class="cart-summary">
+        <h2>Order summary</h2>
+        <div class="summary-row">
+          <span>Items</span><span>{{ cart.items.length }}</span>
+        </div>
+        <div class="summary-row total-row">
+          <span>Total</span><strong>{{ cart.total | currency: 'RON' : 'code' : '1.2-2' }}</strong>
+        </div>
+        <p>Delivery options are shown on each product and confirmed at checkout.</p>
+        <button
+          mat-flat-button
+          color="primary"
+          class="checkout-button"
+          type="button"
+          (click)="checkout()"
+        >
+          Checkout
+        </button>
+      </aside>
+    </div>
+  </ng-container>
+</main>
