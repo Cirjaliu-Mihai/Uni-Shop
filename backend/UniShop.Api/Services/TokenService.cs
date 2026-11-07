@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using UniShop.Api.Contracts;
 using UniShop.Api.Domain;
 using UniShop.Api.Options;
 

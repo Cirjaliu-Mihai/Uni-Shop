@@ -1,0 +1,86 @@
+<main class="details-page">
+  <a class="back-link" routerLink="/">
+    <mat-icon>arrow_back</mat-icon>
+    Back to catalog
+  </a>
+
+  <div *ngIf="loading" class="details-state" role="status">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Loading product…</span>
+  </div>
+
+  <div *ngIf="!loading && errorMessage" class="details-state state-error" role="alert">
+    <mat-icon>inventory_2</mat-icon>
+    <h1>Product unavailable</h1>
+    <p>{{ errorMessage }}</p>
+    <a mat-flat-button color="primary" routerLink="/">Return to catalog</a>
+  </div>
+
+  <article *ngIf="!loading && product as item" class="product-details">
+    <div class="detail-image-wrap">
+      <img *ngIf="item.imageUrl; else detailPlaceholder" [src]="item.imageUrl" [alt]="item.name" />
+      <ng-template #detailPlaceholder>
+        <div class="detail-placeholder" aria-hidden="true"><mat-icon>inventory_2</mat-icon></div>
+      </ng-template>
+    </div>
+
+    <div class="detail-copy">
+      <p class="detail-category">{{ item.categoryName }}</p>
+      <h1>{{ item.name }}</h1>
+      <p class="detail-price">{{ item.price | currency: 'RON' : 'code' : '1.2-2' }}</p>
+      <p class="detail-description">{{ item.description }}</p>
+
+      <div class="availability" [class.unavailable]="item.stock === 0">
+        <span class="availability-dot"></span>
+        <strong>{{ item.stock > 0 ? 'In stock' : 'Out of stock' }}</strong>
+        <span *ngIf="item.stock > 0">{{ item.stock }} available</span>
+      </div>
+
+      <dl class="product-meta">
+        <div>
+          <dt>Category</dt>
+          <dd>{{ item.categoryName }}</dd>
+        </div>
+        <div>
+          <dt>Supplier</dt>
+          <dd>{{ item.supplierName }}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <section class="detail-section specifications-section">
+      <h2>Specifications</h2>
+      <dl class="specification-list">
+        <div *ngFor="let specification of item.specifications | keyvalue">
+          <dt>{{ specification.key }}</dt>
+          <dd>{{ specification.value }}</dd>
+        </div>
+        <p *ngIf="(item.specifications | keyvalue).length === 0" class="muted-copy">
+          No specifications listed.
+        </p>
+      </dl>
+    </section>
+
+    <section class="detail-section delivery-section">
+      <h2>Delivery options</h2>
+      <div *ngIf="item.deliveryMethods.length > 0; else noDelivery" class="delivery-list">
+        <div *ngFor="let method of item.deliveryMethods" class="delivery-option">
+          <div class="delivery-icon">
+            <mat-icon>{{ method.name === 'Pickup' ? 'storefront' : 'local_shipping' }}</mat-icon>
+          </div>
+          <div class="delivery-name">
+            <strong>{{ method.name }}</strong>
+            <span
+              >Estimated {{ method.estimatedDays }}
+              {{ method.estimatedDays === 1 ? 'day' : 'days' }}</span
+            >
+          </div>
+          <strong class="delivery-price">{{
+            method.price === 0 ? 'Free' : (method.price | currency: 'RON' : 'code' : '1.2-2')
+          }}</strong>
+        </div>
+      </div>
+      <ng-template #noDelivery><p class="muted-copy">No delivery options listed.</p></ng-template>
+    </section>
+  </article>
+</main>

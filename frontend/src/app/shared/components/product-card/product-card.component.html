@@ -1,0 +1,27 @@
+<article class="product-card">
+  <a
+    class="product-link"
+    [routerLink]="['/products', product.id]"
+    [attr.aria-label]="'View ' + product.name"
+  >
+    <div class="product-image-wrap">
+      <img
+        *ngIf="product.imageUrl; else imagePlaceholder"
+        [src]="product.imageUrl"
+        [alt]="product.name"
+        loading="lazy"
+      />
+      <ng-template #imagePlaceholder>
+        <div class="image-placeholder" aria-hidden="true"><mat-icon>inventory_2</mat-icon></div>
+      </ng-template>
+      <span class="stock-badge" [class.out-of-stock]="product.stock === 0">
+        {{ product.stock > 0 ? 'In stock' : 'Out of stock' }}
+      </span>
+    </div>
+    <div class="product-copy">
+      <span class="category-name">{{ product.categoryName }}</span>
+      <h2>{{ product.name }}</h2>
+      <p class="product-price">{{ product.price | currency: 'RON' : 'code' : '1.2-2' }}</p>
+    </div>
+  </a>
+</article>

@@ -16,7 +16,6 @@ public sealed class AuthController(
 {
     private const string InvalidCredentialsMessage = "Invalid email or password.";
 
-    /// <summary>Registers a client account and returns its bearer token.</summary>
     [AllowAnonymous]
     [HttpPost("register")]
     [ProducesResponseType<AuthResponse>(StatusCodes.Status201Created)]
@@ -60,7 +59,6 @@ public sealed class AuthController(
         return CreatedAtAction(nameof(Me), response);
     }
 
-    /// <summary>Authenticates an account and returns a bearer token.</summary>
     [AllowAnonymous]
     [HttpPost("login")]
     [ProducesResponseType<AuthResponse>(StatusCodes.Status200OK)]
@@ -83,7 +81,6 @@ public sealed class AuthController(
         return Ok(tokenService.CreateToken(user, roles.ToArray()));
     }
 
-    /// <summary>Returns the authenticated account.</summary>
     [Authorize]
     [HttpGet("me")]
     [ProducesResponseType<AuthUserResponse>(StatusCodes.Status200OK)]

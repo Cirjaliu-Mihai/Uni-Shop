@@ -1,0 +1,144 @@
+<main class="catalog-page">
+  <header class="catalog-heading">
+    <div>
+      <p class="eyebrow">THE UNISHOP CATALOG</p>
+      <h1>Find your next favorite.</h1>
+      <p class="catalog-intro">Useful things for your work, home, and everyday carry.</p>
+    </div>
+    <span class="catalog-count" *ngIf="!loading">{{ totalCount }} items</span>
+  </header>
+
+  <div class="catalog-layout">
+    <aside class="filter-panel" aria-label="Product filters">
+      <div class="filter-heading">
+        <h2>Filter by</h2>
+        <button mat-button type="button" class="clear-button" (click)="clearFilters()">
+          Clear all
+        </button>
+      </div>
+
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search products</mat-label>
+        <input matInput [formControl]="filtersForm.controls.search" placeholder="Try headphones" />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <section class="filter-section">
+        <h3>Category</h3>
+        <p *ngIf="categoryError" class="category-error">Categories are unavailable.</p>
+        <div class="category-options">
+          <button
+            type="button"
+            class="category-option"
+            [class.selected]="filtersForm.controls.categoryId.value === null"
+            (click)="selectCategory(null)"
+          >
+            <span>All categories</span>
+          </button>
+          <button
+            *ngFor="let category of categories"
+            type="button"
+            class="category-option"
+            [class.selected]="filtersForm.controls.categoryId.value === category.id"
+            (click)="selectCategory(category.id)"
+          >
+            <span>{{ category.name }}</span>
+            <span class="category-count">{{ category.productCount }}</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="filter-section price-section">
+        <h3>Price range</h3>
+        <div class="price-inputs">
+          <mat-form-field appearance="outline">
+            <mat-label>Min</mat-label>
+            <input
+              matInput
+              type="number"
+              min="0"
+              step="10"
+              [formControl]="filtersForm.controls.minPrice"
+            />
+          </mat-form-field>
+          <span class="price-dash">to</span>
+          <mat-form-field appearance="outline">
+            <mat-label>Max</mat-label>
+            <input
+              matInput
+              type="number"
+              min="0"
+              step="10"
+              [formControl]="filtersForm.controls.maxPrice"
+            />
+          </mat-form-field>
+        </div>
+        <span class="currency-hint">Prices in RON</span>
+      </section>
+
+      <section class="filter-section stock-section">
+        <h3>Availability</h3>
+        <mat-checkbox
+          [checked]="filtersForm.controls.inStock.value === true"
+          (change)="setInStock($event.checked)"
+        >
+          In stock only
+        </mat-checkbox>
+      </section>
+    </aside>
+
+    <section class="catalog-results" aria-label="Products">
+      <div class="results-toolbar">
+        <p *ngIf="!loading && !errorMessage">
+          Showing <strong>{{ totalCount }}</strong> products
+        </p>
+        <span class="toolbar-spacer"></span>
+        <mat-form-field appearance="outline" class="sort-field">
+          <mat-label>Sort by</mat-label>
+          <mat-select [formControl]="sortControl">
+            <mat-option value="newest">Newest</mat-option>
+            <mat-option value="price_asc">Price: low to high</mat-option>
+            <mat-option value="price_desc">Price: high to low</mat-option>
+            <mat-option value="name">Name</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div *ngIf="loading" class="catalog-state" role="status">
+        <mat-spinner diameter="34"></mat-spinner>
+        <span>Loading the catalog…</span>
+      </div>
+
+      <div *ngIf="!loading && errorMessage" class="catalog-state state-error" role="alert">
+        <mat-icon>cloud_off</mat-icon>
+        <h2>We couldn’t load the catalog</h2>
+        <p>{{ errorMessage }}</p>
+        <button mat-stroked-button type="button" (click)="reload()">Try again</button>
+      </div>
+
+      <div
+        *ngIf="!loading && !errorMessage && products.length === 0"
+        class="catalog-state state-empty"
+      >
+        <mat-icon>search_off</mat-icon>
+        <h2>No products match those filters</h2>
+        <p>Try a different search or clear some filters.</p>
+        <button mat-stroked-button type="button" (click)="clearFilters()">Clear filters</button>
+      </div>
+
+      <div *ngIf="!loading && !errorMessage && products.length > 0" class="product-grid">
+        <app-product-card *ngFor="let product of products" [product]="product"></app-product-card>
+      </div>
+
+      <mat-paginator
+        *ngIf="!loading && !errorMessage && totalCount > 0"
+        [length]="totalCount"
+        [pageIndex]="page - 1"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[12, 24, 48]"
+        (page)="changePage($event)"
+        aria-label="Product catalog pages"
+      ></mat-paginator>
+    </section>
+  </div>
+</main>

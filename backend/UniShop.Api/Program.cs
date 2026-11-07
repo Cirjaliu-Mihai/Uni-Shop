@@ -42,6 +42,8 @@ builder.Services.AddOptions<JwtSettings>()
     .Validate(settings => settings.ExpiresInMinutes > 0, "JwtSettings:ExpiresInMinutes must be greater than zero.")
     .ValidateOnStart();
 builder.Services.AddSingleton<ITokenService, TokenService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {

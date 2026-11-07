@@ -31,6 +31,26 @@ Authorization: Bearer {{token}}
 GET {{baseUrl}}/api/admin/access-check
 Authorization: Bearer {{token}}
 
+### List categories with active product counts
+GET {{baseUrl}}/api/categories
+Accept: application/json
+
+### Browse active products
+GET {{baseUrl}}/api/products?page=1&pageSize=12&sort=newest
+Accept: application/json
+
+### Search and filter catalog
+GET {{baseUrl}}/api/products?search=wireless&minPrice=100&maxPrice=500&inStock=true&sort=price_asc&page=1&pageSize=12
+Accept: application/json
+
+### Get a product by ID
+GET {{baseUrl}}/api/products/1
+Accept: application/json
+
+### Get products for a guest cart
+GET {{baseUrl}}/api/products/by-ids?ids=1,2,3
+Accept: application/json
+
 ### Weather forecast sample
 GET {{baseUrl}}/weatherforecast/
 Accept: application/json

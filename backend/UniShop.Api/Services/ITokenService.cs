@@ -1,3 +1,4 @@
+using UniShop.Api.Contracts;
 using UniShop.Api.Domain;
 
 namespace UniShop.Api.Services;
