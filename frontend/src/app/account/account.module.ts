@@ -1,13 +1,21 @@
 import { NgModule } from '@angular/core';
 import { SharedModule } from '../shared/shared.module';
 import { AccountRoutingModule } from './account-routing.module';
-import { AccountProfileComponent } from './profile/account-profile.component';
+import { AddressDialogComponent } from './addresses/address-dialog.component';
+import { AddressListComponent } from './addresses/address-list.component';
 import { LoginComponent } from './login/login.component';
+import { ProfileComponent } from './profile/profile.component';
 import { RegisterComponent } from './register/register.component';
 
 @NgModule({
-  declarations: [AccountProfileComponent, LoginComponent, RegisterComponent],
+  declarations: [
+    AddressDialogComponent,
+    AddressListComponent,
+    LoginComponent,
+    ProfileComponent,
+    RegisterComponent,
+  ],
   imports: [SharedModule, AccountRoutingModule],
-  exports: [AccountProfileComponent, LoginComponent, RegisterComponent],
+  exports: [LoginComponent, ProfileComponent, RegisterComponent],
 })
 export class AccountModule {}

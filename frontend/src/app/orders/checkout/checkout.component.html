@@ -1,0 +1,277 @@
+<main class="checkout-page">
+  <a class="back-link" routerLink="/cart"><mat-icon>arrow_back</mat-icon>Back to cart</a>
+  <header class="checkout-heading">
+    <p class="eyebrow">SECURE CHECKOUT</p>
+    <h1>Complete your order</h1>
+  </header>
+
+  <div *ngIf="loading" class="checkout-state" role="status">
+    <mat-spinner diameter="34"></mat-spinner><span>Loading checkout…</span>
+  </div>
+  <div *ngIf="!loading && errorMessage && !stockIssues.length" class="checkout-error" role="alert">
+    <mat-icon>error_outline</mat-icon><span>{{ errorMessage }}</span>
+  </div>
+  <div *ngIf="!loading && stockIssues.length > 0" class="stock-error" role="alert">
+    <div><mat-icon>warning_amber</mat-icon><strong>Stock changed before checkout</strong></div>
+    <p>The following item needs your attention:</p>
+    <ul>
+      <li *ngFor="let item of stockIssues">{{ item }}</li>
+    </ul>
+    <p>{{ errorMessage }}</p>
+    <button mat-flat-button color="primary" type="button" (click)="goToCart()">
+      Return to cart
+    </button>
+  </div>
+
+  <mat-stepper *ngIf="!loading && cart && cart.items.length > 0" #stepper class="checkout-stepper">
+    <mat-step label="Contact and address">
+      <form [formGroup]="contactForm" class="step-content" novalidate>
+        <h2>Contact information</h2>
+        <div class="checkout-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Full name</mat-label>
+            <input matInput formControlName="fullName" autocomplete="name" />
+            <mat-error *ngIf="contactForm.get('fullName')?.invalid"
+              >Enter your full name.</mat-error
+            >
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" formControlName="email" autocomplete="email" />
+            <mat-error *ngIf="contactForm.get('email')?.invalid"
+              >Enter a valid email address.</mat-error
+            >
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Phone</mat-label>
+            <input matInput type="tel" formControlName="phone" autocomplete="tel" />
+            <mat-error *ngIf="contactForm.get('phone')?.invalid"
+              >Enter a valid phone number.</mat-error
+            >
+          </mat-form-field>
+        </div>
+
+        <div class="address-choice">
+          <h2>Delivery address</h2>
+          <mat-checkbox formControlName="useNewAddress">Use a new address</mat-checkbox>
+        </div>
+
+        <ng-container *ngIf="!contactForm.controls['useNewAddress'].value; else newAddressFields">
+          <mat-form-field appearance="outline" class="address-select">
+            <mat-label>Saved address</mat-label>
+            <mat-select formControlName="addressId">
+              <mat-option *ngFor="let address of addresses" [value]="address.id">
+                {{ address.label }} · {{ address.street }}, {{ address.city }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <p *ngIf="addresses.length === 0" class="inline-hint">
+            No saved address found; add a new address to continue.
+          </p>
+        </ng-container>
+
+        <ng-template #newAddressFields>
+          <div [formGroup]="newAddressForm" class="checkout-grid new-address-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Address label</mat-label
+              ><input matInput formControlName="label" placeholder="Home" />
+              <mat-error *ngIf="newAddressForm.get('label')?.invalid">Enter a label.</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Recipient name</mat-label
+              ><input matInput formControlName="fullName" autocomplete="name" />
+              <mat-error *ngIf="newAddressForm.get('fullName')?.invalid"
+                >Enter a recipient name.</mat-error
+              >
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Address phone</mat-label
+              ><input matInput type="tel" formControlName="phone" />
+              <mat-error *ngIf="newAddressForm.get('phone')?.invalid"
+                >Enter a valid phone.</mat-error
+              >
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Street</mat-label
+              ><input matInput formControlName="street" autocomplete="street-address" />
+              <mat-error *ngIf="newAddressForm.get('street')?.invalid"
+                >Enter a street address.</mat-error
+              >
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>City</mat-label
+              ><input matInput formControlName="city" autocomplete="address-level2" />
+              <mat-error *ngIf="newAddressForm.get('city')?.invalid">Enter a city.</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>County</mat-label
+              ><input matInput formControlName="county" autocomplete="address-level1" />
+              <mat-error *ngIf="newAddressForm.get('county')?.invalid">Enter a county.</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Postal code</mat-label
+              ><input
+                matInput
+                formControlName="postalCode"
+                inputmode="numeric"
+                maxlength="6"
+                autocomplete="postal-code"
+              />
+              <mat-error *ngIf="newAddressForm.get('postalCode')?.invalid"
+                >Use a 6-digit postal code.</mat-error
+              >
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Country</mat-label
+              ><input matInput formControlName="country" autocomplete="country-name" />
+              <mat-error *ngIf="newAddressForm.get('country')?.invalid">Enter a country.</mat-error>
+            </mat-form-field>
+            <mat-checkbox formControlName="isDefault" class="full-width"
+              >Save as default address</mat-checkbox
+            >
+          </div>
+        </ng-template>
+
+        <div class="step-actions">
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="loadingDelivery"
+            (click)="continueToDelivery(stepper)"
+          >
+            {{ loadingDelivery ? 'Loading options…' : 'Continue to delivery' }}
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </form>
+    </mat-step>
+
+    <mat-step label="Delivery and payment">
+      <div class="step-content">
+        <h2>Delivery and payment</h2>
+        <form [formGroup]="deliveryForm" class="delivery-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Delivery method</mat-label>
+            <mat-select formControlName="deliveryMethodId">
+              <mat-option *ngFor="let option of deliveryOptions" [value]="option.id">
+                {{ option.name }} ·
+                {{
+                  option.price === 0 ? 'Free' : (option.price | currency: 'RON' : 'code' : '1.2-2')
+                }}
+                · {{ option.estimatedDays }} {{ option.estimatedDays === 1 ? 'day' : 'days' }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Payment method</mat-label>
+            <mat-select formControlName="paymentMethod">
+              <mat-option value="card">Card</mat-option>
+              <mat-option value="cashOnDelivery">Cash on delivery</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Order notes</mat-label>
+            <textarea matInput rows="3" maxlength="1000" formControlName="notes"></textarea>
+          </mat-form-field>
+        </form>
+        <div class="step-actions step-actions-split">
+          <button mat-button matStepperPrevious type="button">
+            <mat-icon>arrow_back</mat-icon>Back
+          </button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            matStepperNext
+            [disabled]="deliveryForm.invalid"
+          >
+            Review order<mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+    </mat-step>
+
+    <mat-step label="Review and confirm">
+      <div class="step-content" *ngIf="cart as currentCart">
+        <h2>Review your order</h2>
+        <div class="review-columns">
+          <section class="review-panel">
+            <h3>Items</h3>
+            <div *ngFor="let item of currentCart.items" class="review-line">
+              <span>{{ item.quantity }} × {{ item.name }}</span>
+              <strong>{{ item.lineTotal | currency: 'RON' : 'code' : '1.2-2' }}</strong>
+            </div>
+            <div class="review-line">
+              <span>Subtotal</span
+              ><strong>{{ currentCart.total | currency: 'RON' : 'code' : '1.2-2' }}</strong>
+            </div>
+            <div class="review-line">
+              <span>{{ selectedDelivery()?.name || 'Delivery' }}</span
+              ><strong>{{
+                selectedDelivery()?.price === 0
+                  ? 'Free'
+                  : (selectedDelivery()?.price | currency: 'RON' : 'code' : '1.2-2')
+              }}</strong>
+            </div>
+            <div class="review-line review-total">
+              <span>Total</span
+              ><strong>{{
+                currentCart.total + (selectedDelivery()?.price ?? 0)
+                  | currency: 'RON' : 'code' : '1.2-2'
+              }}</strong>
+            </div>
+          </section>
+          <section class="review-panel">
+            <h3>Delivery and payment</h3>
+            <p>{{ contactForm.get('fullName')?.value }}</p>
+            <p>{{ contactForm.get('email')?.value }} · {{ contactForm.get('phone')?.value }}</p>
+            <p *ngIf="contactForm.get('useNewAddress')?.value">
+              {{ newAddressForm.get('fullName')?.value }}<br />
+              {{ newAddressForm.get('street')?.value }}, {{ newAddressForm.get('city')?.value }},
+              {{ newAddressForm.get('county')?.value }} {{ newAddressForm.get('postalCode')?.value
+              }}<br />
+              {{ newAddressForm.get('country')?.value }}
+            </p>
+            <p *ngIf="!contactForm.get('useNewAddress')?.value">
+              {{ selectedAddress()?.label }}<br />
+              {{ selectedAddress()?.street }}, {{ selectedAddress()?.city }},
+              {{ selectedAddress()?.county }} {{ selectedAddress()?.postalCode }}<br />
+              {{ selectedAddress()?.country }}
+            </p>
+            <p>
+              {{ selectedDelivery()?.name }} ·
+              {{
+                deliveryForm.get('paymentMethod')?.value === 'card' ? 'Card' : 'Cash on delivery'
+              }}
+            </p>
+          </section>
+        </div>
+        <div *ngIf="errorMessage" class="checkout-error" role="alert">
+          <mat-icon>error_outline</mat-icon>{{ errorMessage }}
+        </div>
+        <div *ngIf="stockIssues.length > 0" class="stock-error" role="alert">
+          <strong>These products no longer have enough stock:</strong>
+          <ul>
+            <li *ngFor="let item of stockIssues">{{ item }}</li>
+          </ul>
+          <button mat-stroked-button type="button" (click)="goToCart()">Return to cart</button>
+        </div>
+        <div class="step-actions step-actions-split">
+          <button mat-button matStepperPrevious type="button">
+            <mat-icon>arrow_back</mat-icon>Back
+          </button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="saving"
+            (click)="submitOrder()"
+          >
+            {{ saving ? 'Placing order…' : 'Confirm and place order' }}
+          </button>
+        </div>
+      </div>
+    </mat-step>
+  </mat-stepper>
+</main>

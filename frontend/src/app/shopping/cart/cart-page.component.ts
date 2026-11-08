@@ -61,9 +61,7 @@ export class CartPageComponent {
       });
       return;
     }
-    this.snackBar.open('Checkout will be available in the next step.', 'Dismiss', {
-      duration: 3500,
-    });
+    void this.router.navigate(['/checkout']);
   }
 
   private errorMessage(error: unknown): string {

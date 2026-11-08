@@ -1,0 +1,45 @@
+<main class="profile-page">
+  <p class="eyebrow">YOUR ACCOUNT</p>
+  <h1>Profile and addresses</h1>
+
+  <div *ngIf="loading" class="profile-state" role="status">
+    <mat-spinner diameter="32"></mat-spinner>
+    <span>Loading your profile…</span>
+  </div>
+
+  <ng-container *ngIf="!loading && profile">
+    <section class="profile-section">
+      <header class="section-heading">
+        <div>
+          <h2>Personal details</h2>
+          <p>{{ profile.email }}</p>
+        </div>
+      </header>
+      <form [formGroup]="form" (ngSubmit)="save()" class="profile-form" novalidate>
+        <mat-form-field appearance="outline">
+          <mat-label>Full name</mat-label>
+          <input matInput formControlName="fullName" autocomplete="name" />
+          <mat-error *ngIf="form.controls.fullName.hasError('required')"
+            >Enter your name.</mat-error
+          >
+          <mat-error *ngIf="form.controls.fullName.hasError('maxlength')"
+            >Name must be 200 characters or fewer.</mat-error
+          >
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Phone</mat-label>
+          <input matInput type="tel" formControlName="phone" autocomplete="tel" />
+          <mat-error *ngIf="form.controls.phone.hasError('pattern')"
+            >Enter a valid phone number.</mat-error
+          >
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit" [disabled]="saving">
+          {{ saving ? 'Saving…' : 'Save profile' }}
+        </button>
+      </form>
+      <p *ngIf="errorMessage" class="form-error" role="alert">{{ errorMessage }}</p>
+    </section>
+
+    <app-address-list></app-address-list>
+  </ng-container>
+</main>

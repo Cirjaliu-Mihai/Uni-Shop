@@ -1,0 +1,32 @@
+.address-form {
+  width: min(620px, 78vw);
+  padding-top: 8px;
+}
+
+.address-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 14px;
+}
+
+.address-grid mat-form-field {
+  width: 100%;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 560px) {
+  .address-form {
+    width: min(84vw, 420px);
+  }
+
+  .address-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .full-width {
+    grid-column: auto;
+  }
+}

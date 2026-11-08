@@ -21,6 +21,11 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'checkout',
+    canActivate: [authGuard],
+    loadChildren: () => import('./orders/orders.module').then((module) => module.OrdersModule),
+  },
+  {
     path: 'admin',
     canActivate: [adminGuard],
     loadChildren: () => import('./admin/admin.module').then((module) => module.AdminModule),

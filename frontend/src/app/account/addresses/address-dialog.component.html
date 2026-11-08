@@ -1,0 +1,54 @@
+<h2 mat-dialog-title>{{ data.address ? 'Edit address' : 'Add address' }}</h2>
+<mat-dialog-content>
+  <form [formGroup]="form" class="address-form" (ngSubmit)="save()" novalidate>
+    <div class="address-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Label *</mat-label>
+        <input matInput formControlName="label" placeholder="Home, Work" />
+        <mat-error *ngIf="form.get('label')?.hasError('required')">Enter a label.</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Full name *</mat-label>
+        <input matInput formControlName="fullName" autocomplete="name" />
+        <mat-error *ngIf="form.get('fullName')?.hasError('required')">Enter a recipient name.</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Phone *</mat-label>
+        <input matInput type="tel" formControlName="phone" autocomplete="tel" />
+        <mat-error *ngIf="form.get('phone')?.invalid">Enter a valid phone number.</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Street address *</mat-label>
+        <input matInput formControlName="street" autocomplete="street-address" />
+        <mat-error *ngIf="form.get('street')?.hasError('required')">Enter a street address.</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>City *</mat-label>
+        <input matInput formControlName="city" autocomplete="address-level2" />
+        <mat-error *ngIf="form.get('city')?.hasError('required')">Enter a city.</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>County *</mat-label>
+        <input matInput formControlName="county" autocomplete="address-level1" />
+        <mat-error *ngIf="form.get('county')?.hasError('required')">Enter a county.</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Postal code *</mat-label>
+        <input matInput formControlName="postalCode" inputmode="numeric" maxlength="6" autocomplete="postal-code" />
+        <mat-error *ngIf="form.get('postalCode')?.invalid">Use a 6-digit postal code.</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Country *</mat-label>
+        <input matInput formControlName="country" autocomplete="country-name" />
+        <mat-error *ngIf="form.get('country')?.hasError('required')">Enter a country.</mat-error>
+      </mat-form-field>
+    </div>
+    <mat-checkbox formControlName="isDefault">Set as default delivery address</mat-checkbox>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()">Cancel</button>
+  <button mat-flat-button color="primary" type="button" [disabled]="form.invalid" (click)="save()">
+    {{ data.address ? 'Save changes' : 'Add address' }}
+  </button>
+</mat-dialog-actions>

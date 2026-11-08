@@ -1,0 +1,29 @@
+<section class="address-section">
+  <header class="address-heading">
+    <div><h2>Delivery addresses</h2><p>Choose and maintain your saved delivery addresses.</p></div>
+    <button mat-stroked-button type="button" (click)="add()"><mat-icon>add</mat-icon>Add address</button>
+  </header>
+
+  <div *ngIf="errorMessage" class="address-error" role="alert">{{ errorMessage }}</div>
+  <div *ngIf="loading" class="address-loading"><mat-spinner diameter="28"></mat-spinner></div>
+  <div *ngIf="!loading && !errorMessage && addresses.length === 0" class="address-empty">
+    <mat-icon>location_on</mat-icon><span>No saved delivery addresses yet.</span>
+  </div>
+
+  <div *ngIf="!loading && addresses.length > 0" class="address-list">
+    <article *ngFor="let address of addresses" class="address-card">
+      <div class="address-title">
+        <strong>{{ address.label }}</strong>
+        <span *ngIf="address.isDefault" class="default-badge">Default</span>
+      </div>
+      <p>{{ address.fullName }} · {{ address.phone }}</p>
+      <p>{{ address.street }}, {{ address.city }}, {{ address.county }} {{ address.postalCode }}</p>
+      <p>{{ address.country }}</p>
+      <div class="address-actions">
+        <button *ngIf="!address.isDefault" mat-button type="button" (click)="setDefault(address)">Set default</button>
+        <button mat-icon-button type="button" matTooltip="Edit address" [attr.aria-label]="'Edit ' + address.label" (click)="edit(address)"><mat-icon>edit</mat-icon></button>
+        <button mat-icon-button type="button" matTooltip="Delete address" [attr.aria-label]="'Delete ' + address.label" (click)="remove(address)"><mat-icon>delete_outline</mat-icon></button>
+      </div>
+    </article>
+  </div>
+</section>

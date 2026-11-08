@@ -1,0 +1,69 @@
+<main class="confirmation-page">
+  <div *ngIf="loading" class="confirmation-state" role="status">
+    <mat-spinner diameter="34"></mat-spinner><span>Loading your order…</span>
+  </div>
+  <div *ngIf="!loading && errorMessage" class="confirmation-state error-state" role="alert">
+    <mat-icon>error_outline</mat-icon>
+    <h1>Order unavailable</h1>
+    <p>{{ errorMessage }}</p>
+    <a mat-flat-button color="primary" routerLink="/">Return to store</a>
+  </div>
+
+  <article *ngIf="!loading && order as currentOrder" class="order-confirmation">
+    <div class="success-mark"><mat-icon>check</mat-icon></div>
+    <p class="eyebrow">ORDER PLACED</p>
+    <h1>Thank you for your order.</h1>
+    <p class="order-number">
+      Order #{{ currentOrder.id }} · {{ currentOrder.createdAt | date: 'medium' }}
+    </p>
+    <span class="order-status"
+      >{{ currentOrder.status }} · Payment {{ currentOrder.paymentStatus }}</span
+    >
+
+    <div class="confirmation-grid">
+      <section class="confirmation-panel">
+        <h2>Items</h2>
+        <div *ngFor="let item of currentOrder.items" class="confirmation-line">
+          <div>
+            <strong>{{ item.productName }}</strong
+            ><span
+              >{{ item.quantity }} × {{ item.unitPrice | currency: 'RON' : 'code' : '1.2-2' }}</span
+            >
+          </div>
+          <strong>{{ item.lineTotal | currency: 'RON' : 'code' : '1.2-2' }}</strong>
+        </div>
+        <div class="confirmation-line">
+          <span>Subtotal</span
+          ><strong>{{ currentOrder.subtotal | currency: 'RON' : 'code' : '1.2-2' }}</strong>
+        </div>
+        <div class="confirmation-line">
+          <span>{{ currentOrder.deliveryMethodName }}</span
+          ><strong>{{ currentOrder.deliveryCost | currency: 'RON' : 'code' : '1.2-2' }}</strong>
+        </div>
+        <div class="confirmation-line confirmation-total">
+          <span>Total</span
+          ><strong>{{ currentOrder.total | currency: 'RON' : 'code' : '1.2-2' }}</strong>
+        </div>
+      </section>
+      <section class="confirmation-panel">
+        <h2>Delivery snapshot</h2>
+        <p>
+          <strong>{{ currentOrder.shippingAddressLabel }}</strong>
+        </p>
+        <p>{{ currentOrder.shippingFullName }} · {{ currentOrder.shippingPhone }}</p>
+        <p>{{ currentOrder.shippingStreet }}</p>
+        <p>
+          {{ currentOrder.shippingCity }}, {{ currentOrder.shippingCounty }}
+          {{ currentOrder.shippingPostalCode }}
+        </p>
+        <p>{{ currentOrder.shippingCountry }}</p>
+        <p>Contact: {{ currentOrder.contactName }} · {{ currentOrder.contactEmail }}</p>
+        <p>Payment: {{ currentOrder.paymentMethod }}</p>
+        <p *ngIf="currentOrder.notes">Note: {{ currentOrder.notes }}</p>
+      </section>
+    </div>
+    <button mat-flat-button color="primary" type="button" (click)="continueShopping()">
+      Continue shopping
+    </button>
+  </article>
+</main>
