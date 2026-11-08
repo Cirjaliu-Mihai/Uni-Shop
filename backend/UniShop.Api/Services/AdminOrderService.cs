@@ -111,11 +111,19 @@ public sealed class AdminOrderService(AppDbContext dbContext) : IAdminOrderServi
             {
                 order.Payment.Status = PaymentStatus.Refunded;
             }
+            else if (order.Payment.Status == PaymentStatus.Pending)
+            {
+                order.Payment.Status = PaymentStatus.Failed;
+            }
         }
         else if (status == OrderStatus.Delivered && order.PaymentMethod == PaymentMethod.CashOnDelivery)
         {
             order.Payment.Status = PaymentStatus.Paid;
             order.Payment.PaidAt = DateTimeOffset.UtcNow;
+        }
+        else if (status == OrderStatus.Shipped && order.PaymentMethod == PaymentMethod.Card && order.Payment.Status != PaymentStatus.Paid)
+        {
+            throw new ShoppingConflictException("Card orders must be paid before they can be shipped.");
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

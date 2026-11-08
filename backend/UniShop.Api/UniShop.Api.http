@@ -31,6 +31,46 @@ Authorization: Bearer {{token}}
 GET {{baseUrl}}/api/admin/access-check
 Authorization: Bearer {{token}}
 
+### Create a Stripe Checkout session for a card order
+POST {{baseUrl}}/api/payments/1/checkout-session
+Authorization: Bearer {{token}}
+
+### Stripe webhook (use Stripe CLI to provide a valid Stripe-Signature)
+POST {{baseUrl}}/api/payments/webhook
+Stripe-Signature: {{stripeSignature}}
+Content-Type: application/json
+
+{}
+
+### Search and page admin users
+GET {{baseUrl}}/api/admin/users?search=client&page=1&pageSize=20
+Authorization: Bearer {{token}}
+
+### Lock or unlock a user
+PATCH {{baseUrl}}/api/admin/users/{{userId}}/lock
+Authorization: Bearer {{token}}
+
+### Unlock a user
+PATCH {{baseUrl}}/api/admin/users/{{userId}}/unlock
+Authorization: Bearer {{token}}
+
+### Change a user's role
+PATCH {{baseUrl}}/api/admin/users/{{userId}}/role
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+	"role": "Client"
+}
+
+### Sales report grouped by day, week, or month
+GET {{baseUrl}}/api/admin/reports/sales?from=2026-01-01T00%3A00%3A00Z&to=2026-12-31T23%3A59%3A59Z&groupBy=month
+Authorization: Bearer {{token}}
+
+### Popular products report
+GET {{baseUrl}}/api/admin/reports/popular-products?from=2026-01-01T00%3A00%3A00Z&to=2026-12-31T23%3A59%3A59Z&top=10
+Authorization: Bearer {{token}}
+
 ### List categories with active product counts
 GET {{baseUrl}}/api/categories
 Accept: application/json

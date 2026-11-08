@@ -1,6 +1,7 @@
 {
     "chat.tools.terminal.autoApprove": {
         "dotnet build": true,
-        "npm --prefix frontend": true
+        "npm --prefix frontend": true,
+        "dotnet test": true
     }
 }

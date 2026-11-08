@@ -4,7 +4,7 @@ import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable, forkJoin, switchMap } from 'rxjs';
+import { Observable, forkJoin, map, of, switchMap } from 'rxjs';
 import { Address, AddressWriteRequest, Profile } from '../../account/models/account.models';
 import { AddressService } from '../../account/services/address.service';
 import { ProfileService } from '../../account/services/profile.service';
@@ -168,23 +168,38 @@ export class CheckoutComponent implements OnInit {
           .pipe(switchMap((address) => this.placeOrder(address.id)))
       : this.createOrderForSelectedAddress();
 
-    orderRequest.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (order) => {
-        this.saving = false;
-        this.cartService.refresh().subscribe();
-        void this.router.navigate(['/orders/confirmation', order.id]);
-        this.changeDetectorRef.markForCheck();
-      },
-      error: (error) => {
-        this.saving = false;
-        this.errorMessage = this.readError(error, 'Could not place your order.');
-        if (error instanceof HttpErrorResponse && error.status === 409) {
-          const match = this.errorMessage.match(/insufficient stock for (.*?)(?:;|$)/i);
-          this.stockIssues = match?.[1] ? [match[1]] : [this.errorMessage];
-        }
-        this.changeDetectorRef.markForCheck();
-      },
-    });
+    orderRequest
+      .pipe(
+        switchMap((order) =>
+          order.paymentMethod === 'card'
+            ? this.orderService
+                .createCheckoutSession(order.id)
+                .pipe(map((session) => ({ order, checkoutUrl: session.url })))
+            : of({ order, checkoutUrl: null as string | null }),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: ({ order, checkoutUrl }) => {
+          this.saving = false;
+          this.cartService.refresh().subscribe();
+          if (checkoutUrl) {
+            window.location.assign(checkoutUrl);
+            return;
+          }
+          void this.router.navigate(['/orders/confirmation', order.id]);
+          this.changeDetectorRef.markForCheck();
+        },
+        error: (error) => {
+          this.saving = false;
+          this.errorMessage = this.readError(error, 'Could not place your order.');
+          if (error instanceof HttpErrorResponse && error.status === 409) {
+            const match = this.errorMessage.match(/insufficient stock for (.*?)(?:;|$)/i);
+            this.stockIssues = match?.[1] ? [match[1]] : [this.errorMessage];
+          }
+          this.changeDetectorRef.markForCheck();
+        },
+      });
   }
 
   selectedDelivery(): DeliveryOption | undefined {

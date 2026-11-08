@@ -74,6 +74,34 @@ dotnet user-secrets set "Admin:Password" "LocalPass123"
 dotnet user-secrets set "JwtSettings:Key" "replace-with-a-random-secret-of-at-least-32-bytes"
 ```
 
+## Stripe test payments
+
+Card payments use Stripe-hosted Checkout; card details never pass through the UniShop API. Configure test keys outside committed files. For local `dotnet run`, use user-secrets from `backend/UniShop.Api`:
+
+```powershell
+dotnet user-secrets set "Stripe:SecretKey" "sk_test_replace_with_your_key"
+dotnet user-secrets set "Stripe:WebhookSecret" "whsec_replace_with_cli_secret"
+```
+
+For Docker Compose, copy `.env.example` to `.env` in the repository root and fill in the same test keys as `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`. `.env` is ignored by Git; never commit real Stripe keys.
+
+The Stripe CLI listener must stay running during local tests. Install/run it through `npx` if you do not want a global CLI installation. Log in, then forward only the Checkout event this API handles. Use the `whsec_...` value it prints as `Stripe:WebhookSecret` (or `STRIPE_WEBHOOK_SECRET` in `.env`):
+
+```powershell
+npx @stripe/cli login
+npx @stripe/cli listen --events checkout.session.completed --forward-to localhost:5000/api/payments/webhook
+```
+
+Card orders stay Pending until the verified `checkout.session.completed` webhook arrives. A worker cancels unpaid card orders after 30 minutes and restores inventory. For a successful test payment, use `4242 4242 4242 4242`, any future expiry date, and any CVC.
+
+If Stripe keys are not configured, card-session creation returns `503 Service Unavailable`; cash-on-delivery checkout remains available.
+
+## Admin users and reports
+
+The admin panel includes `/admin/users` for searching and paging through accounts, viewing roles/order counts/lock state, and locking, unlocking, or changing roles. The API prevents self-locking/self-demotion and protects the last administrator. `/admin/reports` shows daily, weekly, or monthly sales and the top-selling products for a selected date range. Cancelled orders are excluded from both reports.
+
+The corresponding APIs are `GET /api/admin/users`, `PATCH /api/admin/users/{id}/lock`, `PATCH /api/admin/users/{id}/unlock`, `PATCH /api/admin/users/{id}/role`, `GET /api/admin/reports/sales`, and `GET /api/admin/reports/popular-products`.
+
 Pentru baza de date pornita separat, ruleaza `dotnet ef database update`, apoi `dotnet run` din directorul `backend/UniShop.Api`.
 Endpoint-urile de autentificare sunt `POST /api/auth/register`, `POST /api/auth/login` si `GET /api/auth/me`.
 

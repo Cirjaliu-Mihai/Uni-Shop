@@ -24,6 +24,10 @@ export class OrderService {
     return this.http.post<Order>(`${apiUrl}/orders`, request);
   }
 
+  createCheckoutSession(orderId: number): Observable<{ url: string }> {
+    return this.http.post<{ url: string }>(`${apiUrl}/payments/${orderId}/checkout-session`, {});
+  }
+
   getOrder(id: number): Observable<Order> {
     return this.http.get<Order>(`${apiUrl}/orders/${id}`);
   }

@@ -1,0 +1,122 @@
+<section class="admin-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">BUSINESS OVERVIEW</p>
+      <h1>Reports</h1>
+      <p>Sales and product performance for the selected period.</p>
+    </div>
+  </header>
+
+  <section class="report-toolbar" aria-label="Report filters">
+    <mat-form-field appearance="outline" class="date-range-field">
+      <mat-label>Report dates</mat-label>
+      <mat-date-range-input [formGroup]="dateRange" [rangePicker]="picker">
+        <input matStartDate formControlName="start" placeholder="Start date" />
+        <input matEndDate formControlName="end" placeholder="End date" />
+      </mat-date-range-input>
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-date-range-picker #picker></mat-date-range-picker>
+      <mat-error *ngIf="dateRange.invalid">Choose a valid date range.</mat-error>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="group-field">
+      <mat-label>Sales interval</mat-label>
+      <mat-select [formControl]="groupBy">
+        <mat-option value="day">Daily</mat-option><mat-option value="week">Weekly</mat-option
+        ><mat-option value="month">Monthly</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <button
+      mat-flat-button
+      color="primary"
+      type="button"
+      [disabled]="loading || dateRange.invalid"
+      (click)="loadReports()"
+    >
+      <mat-icon>refresh</mat-icon>Update reports
+    </button>
+  </section>
+
+  <div *ngIf="loading" class="report-state"><mat-spinner diameter="32"></mat-spinner></div>
+  <div *ngIf="!loading && errorMessage" class="report-state error-state" role="alert">
+    {{ errorMessage }}
+  </div>
+  <div *ngIf="!loading && !errorMessage" class="report-grid">
+    <section class="report-panel sales-panel">
+      <header>
+        <div>
+          <h2>Sales</h2>
+          <p>{{ totalOrders }} orders in {{ sales.length }} periods</p>
+        </div>
+        <strong>{{ totalRevenue | currency: 'RON' : 'code' : '1.2-2' }}</strong>
+      </header>
+      <div class="chart-wrap">
+        <canvas
+          baseChart
+          [data]="salesChartData"
+          [options]="salesChartOptions"
+          type="line"
+          aria-label="Sales revenue chart"
+        ></canvas>
+      </div>
+      <div class="report-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Period</th>
+              <th>Orders</th>
+              <th>Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let point of sales">
+              <td>{{ point.periodStart | date: 'mediumDate' }}</td>
+              <td>{{ point.orderCount }}</td>
+              <td>{{ point.revenue | currency: 'RON' : 'code' : '1.2-2' }}</td>
+            </tr>
+            <tr *ngIf="sales.length === 0">
+              <td colspan="3" class="empty-row">No sales in this period.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="report-panel popular-panel">
+      <header>
+        <div>
+          <h2>Popular products</h2>
+          <p>Top 10 by units sold</p>
+        </div>
+      </header>
+      <div class="chart-wrap">
+        <canvas
+          baseChart
+          [data]="popularChartData"
+          [options]="popularChartOptions"
+          type="bar"
+          aria-label="Popular products chart"
+        ></canvas>
+      </div>
+      <div class="report-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Units</th>
+              <th>Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of popularProducts">
+              <td>{{ item.productName }}</td>
+              <td>{{ item.quantitySold }}</td>
+              <td>{{ item.revenue | currency: 'RON' : 'code' : '1.2-2' }}</td>
+            </tr>
+            <tr *ngIf="popularProducts.length === 0">
+              <td colspan="3" class="empty-row">No product sales in this period.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>

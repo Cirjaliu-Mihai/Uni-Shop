@@ -92,3 +92,28 @@ export interface AdminPagedResult<T> {
   totalCount: number;
   totalPages: number;
 }
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  fullName: string;
+  roles: string[];
+  orderCount: number;
+  isLocked: boolean;
+  createdAt: string;
+}
+
+export type AdminSalesGroupBy = 'day' | 'week' | 'month';
+
+export interface SalesReportPoint {
+  periodStart: string;
+  orderCount: number;
+  revenue: number;
+}
+
+export interface PopularProductReport {
+  productId: number;
+  productName: string;
+  quantitySold: number;
+  revenue: number;
+}

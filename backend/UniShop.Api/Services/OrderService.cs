@@ -5,7 +5,7 @@ using UniShop.Api.Persistence;
 
 namespace UniShop.Api.Services;
 
-public sealed class OrderService(AppDbContext dbContext, IPaymentGateway paymentGateway) : IOrderService
+public sealed class OrderService(AppDbContext dbContext) : IOrderService
 {
     public async Task<IReadOnlyList<DeliveryOptionDto>> GetDeliveryOptionsAsync(string userId, CancellationToken cancellationToken)
     {
@@ -124,19 +124,14 @@ public sealed class OrderService(AppDbContext dbContext, IPaymentGateway payment
         dbContext.Orders.Add(order);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        var paymentResult = await paymentGateway.ProcessAsync(
-            new PaymentGatewayRequest(order.Id, order.Total, "RON", order.PaymentMethod),
-            cancellationToken);
         order.Payment = new Payment
         {
             OrderId = order.Id,
             Method = order.PaymentMethod,
-            Status = paymentResult.Status,
+            Status = PaymentStatus.Pending,
             Amount = order.Total,
             Currency = "RON",
-            ProviderReference = paymentResult.ProviderReference,
-            CreatedAt = DateTimeOffset.UtcNow,
-            PaidAt = paymentResult.PaidAt
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         dbContext.CartItems.RemoveRange(cart.Items);
@@ -144,7 +139,7 @@ public sealed class OrderService(AppDbContext dbContext, IPaymentGateway payment
         cart.UpdatedAt = DateTimeOffset.UtcNow;
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
-        return ToDto(order, paymentResult.Status);
+        return ToDto(order, order.Payment.Status);
     }
 
     public async Task<OrderDto?> GetOrderAsync(string userId, int orderId, CancellationToken cancellationToken)
@@ -230,6 +225,10 @@ public sealed class OrderService(AppDbContext dbContext, IPaymentGateway payment
         if (order.Payment.Status == PaymentStatus.Paid)
         {
             order.Payment.Status = PaymentStatus.Refunded;
+        }
+        else if (order.Payment.Status == PaymentStatus.Pending)
+        {
+            order.Payment.Status = PaymentStatus.Failed;
         }
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);

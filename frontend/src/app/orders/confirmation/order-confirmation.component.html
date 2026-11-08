@@ -19,6 +19,20 @@
     <span class="order-status"
       >{{ currentOrder.status }} · Payment {{ currentOrder.paymentStatus }}</span
     >
+    <p *ngIf="paymentWasCancelled && currentOrder.paymentStatus === 'pending'" role="status">
+      Payment was not completed. Your order is still reserved for up to 30 minutes.
+    </p>
+    <p
+      *ngIf="
+        currentOrder.paymentMethod === 'card' &&
+        currentOrder.paymentStatus === 'pending' &&
+        !paymentWasCancelled
+      "
+      role="status"
+    >
+      Waiting for Stripe to confirm your payment…
+    </p>
+    <p *ngIf="errorMessage" class="error-state" role="alert">{{ errorMessage }}</p>
 
     <div class="confirmation-grid">
       <section class="confirmation-panel">
@@ -62,6 +76,15 @@
         <p *ngIf="currentOrder.notes">Note: {{ currentOrder.notes }}</p>
       </section>
     </div>
+    <button
+      *ngIf="currentOrder.paymentMethod === 'card' && currentOrder.paymentStatus === 'pending'"
+      mat-stroked-button
+      type="button"
+      [disabled]="retryingPayment"
+      (click)="retryPayment()"
+    >
+      {{ retryingPayment ? 'Opening Stripe…' : 'Retry payment' }}
+    </button>
     <button mat-flat-button color="primary" type="button" (click)="continueShopping()">
       Continue shopping
     </button>

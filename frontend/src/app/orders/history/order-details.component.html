@@ -69,6 +69,15 @@
           {{ current.paymentMethod === 'card' ? 'Card' : 'Cash on delivery' }} ·
           {{ current.paymentStatus }}
         </p>
+        <button
+          *ngIf="current.paymentMethod === 'card' && current.paymentStatus === 'pending'"
+          mat-stroked-button
+          type="button"
+          [disabled]="retryingPayment"
+          (click)="retryPayment()"
+        >
+          {{ retryingPayment ? 'Opening Stripe…' : 'Retry payment' }}
+        </button>
         <p>{{ current.contactEmail }}<br />{{ current.contactPhone }}</p>
         <p *ngIf="current.notes">Note: {{ current.notes }}</p>
       </section>

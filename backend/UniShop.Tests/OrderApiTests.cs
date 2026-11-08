@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using UniShop.Api.Contracts;
 using UniShop.Api.Domain;
 using UniShop.Api.Persistence;
+using UniShop.Api.Services;
 using Xunit;
 
 namespace UniShop.Tests;
@@ -35,7 +37,7 @@ public class OrderApiTests(PostgresFixture fixture) : IClassFixture<PostgresFixt
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.NotNull(order);
         Assert.Equal(OrderStatus.Processing, order.Status);
-        Assert.Equal(PaymentStatus.Paid, order.PaymentStatus);
+        Assert.Equal(PaymentStatus.Pending, order.PaymentStatus);
         Assert.Equal(40m, order.Subtotal);
         Assert.Equal(2, order.Items.Single().Quantity);
         Assert.Equal(20m, order.Items.Single().UnitPrice);
@@ -148,6 +150,7 @@ public class OrderApiTests(PostgresFixture fixture) : IClassFixture<PostgresFixt
         var productId = await CreateProductAsync(stock: 5, price: 21m);
         var order = await CreateOrderAsync(buyer.Client, productId, quantity: 2, paymentMethod: "card");
         var foreignOrder = await CreateOrderAsync(otherBuyer.Client, productId, quantity: 1, paymentMethod: "card");
+        await MarkOrderPaidAsync(order.Id);
 
         var history = await buyer.Client.GetFromJsonAsync<PagedResult<OrderListDto>>("/api/orders?page=1&pageSize=50", ResponseJsonOptions);
         using var foreignDetail = await buyer.Client.GetAsync($"/api/orders/{foreignOrder.Id}");
@@ -172,6 +175,7 @@ public class OrderApiTests(PostgresFixture fixture) : IClassFixture<PostgresFixt
         using var admin = await CreateAdminClientAsync();
         var productId = await CreateProductAsync(stock: 5, price: 16m);
         var order = await CreateOrderAsync(buyer.Client, productId, quantity: 2, paymentMethod: "card");
+        await MarkOrderPaidAsync(order.Id);
 
         using var shippedResponse = await admin.PatchAsJsonAsync($"/api/admin/orders/{order.Id}/status", new { status = "shipped" });
         var shipped = await shippedResponse.Content.ReadFromJsonAsync<OrderDto>(ResponseJsonOptions);
@@ -204,6 +208,107 @@ public class OrderApiTests(PostgresFixture fixture) : IClassFixture<PostgresFixt
         Assert.Equal(HttpStatusCode.OK, shipped.StatusCode);
         Assert.Equal(HttpStatusCode.OK, delivered.StatusCode);
         Assert.Equal(PaymentStatus.Paid, updated!.PaymentStatus);
+    }
+
+    [Fact]
+    public async Task Signed_checkout_completed_webhook_marks_card_order_paid()
+    {
+        using var buyer = await CreateClientAsync();
+        var productId = await CreateProductAsync(stock: 3, price: 24m);
+        var order = await CreateOrderAsync(buyer.Client, productId, quantity: 1, paymentMethod: "card");
+        Assert.Equal(PaymentStatus.Pending, order.PaymentStatus);
+        const string sessionId = "cs_test_signed_checkout";
+        await SetPaymentReferenceAsync(order.Id, sessionId);
+
+        var amountMinor = (long)(order.Total * 100m);
+        var payload = JsonSerializer.Serialize(new Dictionary<string, object?>
+        {
+            ["id"] = "evt_checkout_test",
+            ["object"] = "event",
+            ["api_version"] = "2025-03-31.basil",
+            ["created"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            ["data"] = new Dictionary<string, object?>
+            {
+                ["object"] = new Dictionary<string, object?>
+                {
+                    ["id"] = sessionId,
+                    ["object"] = "checkout.session",
+                    ["client_reference_id"] = order.Id.ToString(),
+                    ["payment_intent"] = "pi_test_checkout",
+                    ["payment_status"] = "paid",
+                    ["amount_total"] = amountMinor,
+                    ["currency"] = "ron",
+                    ["metadata"] = new Dictionary<string, string> { ["orderId"] = order.Id.ToString() }
+                }
+            },
+            ["livemode"] = false,
+            ["pending_webhooks"] = 1,
+            ["type"] = "checkout.session.completed"
+        });
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/payments/webhook")
+        {
+            Content = new StringContent(payload, Encoding.UTF8, "application/json")
+        };
+        request.Headers.TryAddWithoutValidation(
+            "Stripe-Signature",
+            Stripe.EventUtility.GenerateSignatureHeader(payload, "whsec_test_webhook_secret_for_unishop"));
+
+        using var webhookClient = fixture.Factory.CreateClient();
+        using var response = await webhookClient.SendAsync(request);
+        var responseBody = await response.Content.ReadAsStringAsync();
+        var paidOrder = await buyer.Client.GetFromJsonAsync<OrderDto>($"/api/orders/{order.Id}", ResponseJsonOptions);
+
+        Assert.True(response.StatusCode == HttpStatusCode.OK, responseBody);
+        Assert.Equal(PaymentStatus.Paid, paidOrder!.PaymentStatus);
+    }
+
+    [Fact]
+    public async Task Invalid_stripe_webhook_signature_is_rejected()
+    {
+        using var client = fixture.Factory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/payments/webhook")
+        {
+            Content = new StringContent("{}", Encoding.UTF8, "application/json")
+        };
+        request.Headers.TryAddWithoutValidation("Stripe-Signature", "t=1,v1=invalid");
+
+        using var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Missing_stripe_configuration_returns_a_shopper_safe_message()
+    {
+        using var buyer = await CreateClientAsync();
+        var productId = await CreateProductAsync(stock: 2, price: 18m);
+        var order = await CreateOrderAsync(buyer.Client, productId, quantity: 1, paymentMethod: "card");
+
+        using var response = await buyer.Client.PostAsJsonAsync($"/api/payments/{order.Id}/checkout-session", new { });
+        var problem = await response.Content.ReadFromJsonAsync<Microsoft.AspNetCore.Mvc.ProblemDetails>();
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        Assert.Equal("Card payments are temporarily unavailable. Please choose cash on delivery or try again later.", problem!.Detail);
+        Assert.DoesNotContain("Stripe:SecretKey", problem.Detail, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Expiring_pending_card_order_marks_payment_failed_and_restocks()
+    {
+        using var buyer = await CreateClientAsync();
+        var productId = await CreateProductAsync(stock: 3, price: 29m);
+        var order = await CreateOrderAsync(buyer.Client, productId, quantity: 1, paymentMethod: "card");
+        await SetPaymentCreatedAtAsync(order.Id, DateTimeOffset.UtcNow.AddMinutes(-31));
+
+        using var scope = fixture.Factory.Services.CreateScope();
+        var paymentService = scope.ServiceProvider.GetRequiredService<IPaymentService>();
+        var expiredCount = await paymentService.ExpirePendingOrdersAsync(DateTimeOffset.UtcNow.AddMinutes(-30), CancellationToken.None);
+        var updatedOrder = await buyer.Client.GetFromJsonAsync<OrderDto>($"/api/orders/{order.Id}", ResponseJsonOptions);
+
+        Assert.Equal(1, expiredCount);
+        Assert.Equal(OrderStatus.Cancelled, updatedOrder!.Status);
+        Assert.Equal(PaymentStatus.Failed, updatedOrder.PaymentStatus);
+        Assert.Equal(3, await GetStockAsync(productId));
     }
 
     private async Task<TestClient> CreateClientAsync()
@@ -335,6 +440,30 @@ public class OrderApiTests(PostgresFixture fixture) : IClassFixture<PostgresFixt
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await db.Products.Where(product => product.Id == productId)
             .ExecuteUpdateAsync(setters => setters.SetProperty(product => product.Price, price));
+    }
+
+    private async Task MarkOrderPaidAsync(int orderId)
+    {
+        using var scope = fixture.Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await db.Payments.Where(payment => payment.OrderId == orderId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(payment => payment.Status, PaymentStatus.Paid));
+    }
+
+    private async Task SetPaymentReferenceAsync(int orderId, string reference)
+    {
+        using var scope = fixture.Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await db.Payments.Where(payment => payment.OrderId == orderId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(payment => payment.ProviderReference, reference));
+    }
+
+    private async Task SetPaymentCreatedAtAsync(int orderId, DateTimeOffset createdAt)
+    {
+        using var scope = fixture.Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await db.Payments.Where(payment => payment.OrderId == orderId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(payment => payment.CreatedAt, createdAt));
     }
 
     private static object NewOrderRequest(int addressId, int deliveryMethodId) => new

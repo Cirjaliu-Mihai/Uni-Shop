@@ -45,7 +45,9 @@ public sealed class UniShopWebApplicationFactory(string connectionString) : WebA
                 ["JwtSettings:Key"] = "TestOnlySigningKey0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
                 ["JwtSettings:Issuer"] = "UniShop.Tests",
                 ["JwtSettings:Audience"] = "UniShop.Tests.Client",
-                ["JwtSettings:ExpiresInMinutes"] = "15"
+                ["JwtSettings:ExpiresInMinutes"] = "15",
+                ["Stripe:SecretKey"] = "",
+                ["Stripe:WebhookSecret"] = "whsec_test_webhook_secret_for_unishop"
             }));
         builder.ConfigureLogging(logging => logging.ClearProviders());
     }

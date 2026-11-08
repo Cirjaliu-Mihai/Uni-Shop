@@ -19,6 +19,7 @@ export class OrderDetailsComponent implements OnInit {
   loading = true;
   errorMessage = '';
   saving = false;
+  retryingPayment = false;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -79,6 +80,28 @@ export class OrderDetailsComponent implements OnInit {
               this.changeDetectorRef.markForCheck();
             },
           });
+      });
+  }
+
+  retryPayment(): void {
+    if (
+      !this.order ||
+      this.order.paymentMethod !== 'card' ||
+      this.order.paymentStatus !== 'pending' ||
+      this.retryingPayment
+    )
+      return;
+    this.retryingPayment = true;
+    this.orderService
+      .createCheckoutSession(this.order.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (session) => window.location.assign(session.url),
+        error: (error: unknown) => {
+          this.retryingPayment = false;
+          this.snackBar.open(this.readError(error), 'Dismiss', { duration: 5000 });
+          this.changeDetectorRef.markForCheck();
+        },
       });
   }
 
