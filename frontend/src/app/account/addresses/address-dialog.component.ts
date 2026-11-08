@@ -25,7 +25,10 @@ export class AddressDialogComponent {
     this.form = formBuilder.group({
       label: [address?.label ?? '', [Validators.required, Validators.maxLength(80)]],
       fullName: [address?.fullName ?? '', [Validators.required, Validators.maxLength(200)]],
-      phone: [address?.phone ?? '', [Validators.required, Validators.pattern(/^[+0-9()\-\s]{7,40}$/)]],
+      phone: [
+        address?.phone ?? '',
+        [Validators.required, Validators.pattern(/^[+0-9()\-\s]{7,40}$/)],
+      ],
       street: [address?.street ?? '', [Validators.required, Validators.maxLength(300)]],
       city: [address?.city ?? '', [Validators.required, Validators.maxLength(120)]],
       county: [address?.county ?? '', [Validators.required, Validators.maxLength(120)]],

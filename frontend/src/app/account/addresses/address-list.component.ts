@@ -32,12 +32,12 @@ export class AddressListComponent implements OnInit {
   loadAddresses(): void {
     this.loading = true;
     this.addressService.getAddresses().subscribe({
-      next: addresses => {
+      next: (addresses) => {
         this.addresses = addresses;
         this.loading = false;
         this.changeDetectorRef.markForCheck();
       },
-      error: error => {
+      error: (error) => {
         this.loading = false;
         this.errorMessage = this.readError(error, 'Could not load addresses.');
         this.changeDetectorRef.markForCheck();
@@ -59,31 +59,43 @@ export class AddressListComponent implements OnInit {
         this.snackBar.open('Default address updated.', 'Dismiss', { duration: 2500 });
         this.loadAddresses();
       },
-      error: error => this.snackBar.open(this.readError(error, 'Could not update the default address.'), 'Dismiss', { duration: 4000 }),
+      error: (error) =>
+        this.snackBar.open(
+          this.readError(error, 'Could not update the default address.'),
+          'Dismiss',
+          { duration: 4000 },
+        ),
     });
   }
 
   remove(address: Address): void {
-    this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        title: 'Delete address?',
-        message: `Remove the ${address.label} address?`,
-        confirmLabel: 'Delete address',
-      },
-    }).afterClosed().subscribe(confirmed => {
-      if (!confirmed) return;
-      this.addressService.deleteAddress(address.id).subscribe({
-        next: () => {
-          this.snackBar.open('Address deleted.', 'Dismiss', { duration: 2500 });
-          this.loadAddresses();
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        data: {
+          title: 'Delete address?',
+          message: `Remove the ${address.label} address?`,
+          confirmLabel: 'Delete address',
         },
-        error: error => this.snackBar.open(this.readError(error, 'Could not delete the address.'), 'Dismiss', { duration: 4000 }),
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
+        this.addressService.deleteAddress(address.id).subscribe({
+          next: () => {
+            this.snackBar.open('Address deleted.', 'Dismiss', { duration: 2500 });
+            this.loadAddresses();
+          },
+          error: (error) =>
+            this.snackBar.open(this.readError(error, 'Could not delete the address.'), 'Dismiss', {
+              duration: 4000,
+            }),
+        });
       });
-    });
   }
 
   private openEditor(address?: Address): void {
-    this.dialog.open(AddressDialogComponent, { data: { address }, maxWidth: 'calc(100vw - 32px)' })
+    this.dialog
+      .open(AddressDialogComponent, { data: { address }, maxWidth: 'calc(100vw - 32px)' })
       .afterClosed()
       .subscribe((request: AddressWriteRequest | undefined) => {
         if (!request) return;
@@ -92,10 +104,15 @@ export class AddressListComponent implements OnInit {
           : this.addressService.createAddress(request);
         save.subscribe({
           next: () => {
-            this.snackBar.open(address ? 'Address updated.' : 'Address added.', 'Dismiss', { duration: 2500 });
+            this.snackBar.open(address ? 'Address updated.' : 'Address added.', 'Dismiss', {
+              duration: 2500,
+            });
             this.loadAddresses();
           },
-          error: error => this.snackBar.open(this.readError(error, 'Could not save the address.'), 'Dismiss', { duration: 4000 }),
+          error: (error) =>
+            this.snackBar.open(this.readError(error, 'Could not save the address.'), 'Dismiss', {
+              duration: 4000,
+            }),
         });
       });
   }

@@ -6,6 +6,7 @@ import {
 } from '@angular/core';
 import { BrowserModule, provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
@@ -16,7 +17,7 @@ import { CoreModule } from './core/core.module';
 
 @NgModule({
   declarations: [App],
-  imports: [BrowserModule, HttpClientModule, AppRoutingModule, CoreModule],
+  imports: [BrowserModule, HttpClientModule, MatSnackBarModule, AppRoutingModule, CoreModule],
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideClientHydration(withEventReplay()),

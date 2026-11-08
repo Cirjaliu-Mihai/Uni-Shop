@@ -34,3 +34,9 @@ input {
 a {
   color: inherit;
 }
+
+.api-error-snackbar .mdc-snackbar__surface {
+  border-radius: 4px !important;
+  background: #193b32 !important;
+  color: #fff !important;
+}

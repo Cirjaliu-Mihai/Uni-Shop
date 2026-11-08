@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { adminGuard, authGuard } from './core/auth/auth.guards';
+import { NotFoundComponent } from './core/components/not-found/not-found.component';
 
 const routes: Routes = [
   {
@@ -43,7 +44,7 @@ const routes: Routes = [
     path: '',
     loadChildren: () => import('./catalog/catalog.module').then((module) => module.CatalogModule),
   },
-  { path: '**', redirectTo: '' },
+  { path: '**', component: NotFoundComponent },
 ];
 
 @NgModule({

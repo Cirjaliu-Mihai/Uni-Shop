@@ -1,0 +1,4 @@
+.not-found-page { display: grid; min-height: 55vh; align-content: center; justify-items: start; width: min(680px, calc(100% - 40px)); margin: 0 auto; padding: 48px 0; }
+.eyebrow { color: #bd5839; font-size: 12px; font-weight: 700; }
+h1 { margin: 8px 0; color: #193b32; font-family: 'DM Serif Display', Georgia, serif; font-size: 40px; font-weight: 400; }
+p:not(.eyebrow) { margin: 0 0 24px; color: #64746b; }

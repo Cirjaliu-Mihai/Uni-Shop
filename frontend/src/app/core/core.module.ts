@@ -9,9 +9,16 @@ import { AppShellComponent } from './components/app-shell/app-shell.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { HomeComponent } from './components/home/home.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
+import { NotFoundComponent } from './components/not-found/not-found.component';
 
 @NgModule({
-  declarations: [AppShellComponent, FooterComponent, HomeComponent, NavbarComponent],
+  declarations: [
+    AppShellComponent,
+    FooterComponent,
+    HomeComponent,
+    NavbarComponent,
+    NotFoundComponent,
+  ],
   imports: [
     CommonModule,
     RouterModule,
@@ -20,6 +27,6 @@ import { NavbarComponent } from './components/navbar/navbar.component';
     MatMenuModule,
     MatToolbarModule,
   ],
-  exports: [AppShellComponent, HomeComponent],
+  exports: [AppShellComponent, HomeComponent, NotFoundComponent],
 })
 export class CoreModule {}
