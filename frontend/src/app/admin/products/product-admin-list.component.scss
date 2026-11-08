@@ -1,3 +1,15 @@
+.stock-cell {
+  white-space: nowrap;
+}
+.stock-cell input {
+  width: 72px;
+  min-height: 36px;
+  box-sizing: border-box;
+  padding: 4px 6px;
+  border: 1px solid #cbd4ce;
+  border-radius: 3px;
+  font: inherit;
+}
 .admin-page {
   max-width: 1440px;
   margin: 0 auto;

@@ -93,6 +93,99 @@ public class AdminApiTests(PostgresFixture fixture) : IClassFixture<PostgresFixt
     }
 
     [Fact]
+    public async Task Product_order_reference_blocks_delete_and_admin_can_deactivate_and_edit_stock()
+    {
+        using var admin = await CreateAdminClientAsync();
+        using var buyer = fixture.Factory.CreateClient();
+        using var registerResponse = await buyer.PostAsJsonAsync("/api/auth/register", new
+        {
+            fullName = "Order Product Buyer",
+            email = $"product-order-{Guid.NewGuid():N}@example.test",
+            password = "ClientPass123"
+        });
+        var auth = await registerResponse.Content.ReadFromJsonAsync<AuthResponse>();
+        buyer.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth!.Token);
+
+        var categories = await admin.GetFromJsonAsync<List<CategoryAdminDto>>("/api/admin/categories");
+        var suppliers = await admin.GetFromJsonAsync<List<SupplierAdminDto>>("/api/admin/suppliers");
+        var methods = await admin.GetFromJsonAsync<List<DeliveryMethodAdminDto>>("/api/admin/delivery-methods");
+        using var createResponse = await admin.PostAsJsonAsync("/api/admin/products", new
+        {
+            name = $"Order Referenced {Guid.NewGuid():N}",
+            description = "Product referenced by an order.",
+            specifications = Array.Empty<object>(),
+            price = 25m,
+            stock = 4,
+            imageUrl = (string?)null,
+            isActive = true,
+            categoryId = categories!.First().Id,
+            supplierId = suppliers!.First().Id,
+            deliveryMethodIds = methods!.Select(method => method.Id).ToArray()
+        });
+        var product = await createResponse.Content.ReadFromJsonAsync<AdminProductDto>();
+        using var addressResponse = await buyer.PostAsJsonAsync("/api/addresses", new
+        {
+            label = "Home",
+            fullName = "Product Buyer",
+            phone = "+40 721 000 111",
+            street = "1 Test Street",
+            city = "Bucharest",
+            county = "Bucharest",
+            postalCode = "123456",
+            country = "Romania",
+            isDefault = true
+        });
+        var address = await addressResponse.Content.ReadFromJsonAsync<AddressDto>();
+        using var cartResponse = await buyer.PutAsJsonAsync($"/api/cart/items/{product!.Id}", new { quantity = 1 });
+        var options = await buyer.GetFromJsonAsync<List<DeliveryOptionDto>>("/api/checkout/delivery-options");
+        using var checkout = await buyer.PostAsJsonAsync("/api/orders", new
+        {
+            addressId = address!.Id,
+            contact = new { fullName = "Product Buyer", email = auth.User.Email, phone = "+40 721 000 111" },
+            deliveryMethodId = options!.First().Id,
+            paymentMethod = "card",
+            notes = (string?)null
+        });
+
+        using var deleteResponse = await admin.DeleteAsync($"/api/admin/products/{product.Id}");
+        var problem = await deleteResponse.Content.ReadFromJsonAsync<ProblemDetails>();
+        using var stockResponse = await admin.PatchAsJsonAsync($"/api/admin/products/{product.Id}/stock", new { stock = 12 });
+        using var deactivateResponse = await admin.PatchAsJsonAsync($"/api/admin/products/{product.Id}/active", new { });
+        var updatedProduct = await admin.GetFromJsonAsync<AdminProductDto>($"/api/admin/products/{product.Id}");
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, addressResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, cartResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, checkout.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, deleteResponse.StatusCode);
+        Assert.Contains("Deactivate", problem!.Detail, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(HttpStatusCode.NoContent, stockResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, deactivateResponse.StatusCode);
+        Assert.Equal(12, updatedProduct!.Stock);
+        Assert.False(updatedProduct.IsActive);
+    }
+
+    [Fact]
+    public async Task Client_cannot_access_admin_order_routes_or_change_product_stock()
+    {
+        using var client = fixture.Factory.CreateClient();
+        using var registerResponse = await client.PostAsJsonAsync("/api/auth/register", new
+        {
+            fullName = "Regular Client",
+            email = $"admin-route-client-{Guid.NewGuid():N}@example.test",
+            password = "ClientPass123"
+        });
+        var auth = await registerResponse.Content.ReadFromJsonAsync<AuthResponse>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth!.Token);
+
+        using var ordersResponse = await client.GetAsync("/api/admin/orders");
+        using var stockResponse = await client.PatchAsJsonAsync("/api/admin/products/1/stock", new { stock = 9 });
+
+        Assert.Equal(HttpStatusCode.Forbidden, ordersResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, stockResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task Product_validation_rejects_bad_price_references_and_duplicate_specification_keys()
     {
         using var client = await CreateAdminClientAsync();

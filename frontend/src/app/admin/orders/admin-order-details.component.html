@@ -1,0 +1,92 @@
+<section class="admin-page">
+  <a mat-button routerLink="/admin/orders"><mat-icon>arrow_back</mat-icon>Orders</a>
+  <div *ngIf="loading" class="order-state"><mat-spinner diameter="32"></mat-spinner></div>
+  <div *ngIf="!loading && errorMessage" class="order-state" role="alert">{{ errorMessage }}</div>
+  <ng-container *ngIf="order as current">
+    <header class="page-heading">
+      <div>
+        <p class="eyebrow">ORDER #{{ current.id }}</p>
+        <h1>{{ current.contactName }}</h1>
+        <p>
+          {{ current.createdAt | date: 'medium' }} · {{ current.contactEmail }} ·
+          {{ current.contactPhone }}
+        </p>
+      </div>
+      <div class="status-actions">
+        <span class="status-pill">{{ current.status }}</span
+        ><button
+          *ngIf="canSetStatus('shipped')"
+          mat-flat-button
+          color="primary"
+          [disabled]="saving"
+          (click)="setStatus('shipped')"
+        >
+          Mark shipped</button
+        ><button
+          *ngIf="canSetStatus('delivered')"
+          mat-flat-button
+          color="primary"
+          [disabled]="saving"
+          (click)="setStatus('delivered')"
+        >
+          Mark delivered</button
+        ><button
+          *ngIf="canSetStatus('cancelled')"
+          mat-stroked-button
+          color="warn"
+          [disabled]="saving"
+          (click)="setStatus('cancelled')"
+        >
+          Cancel order
+        </button>
+      </div>
+    </header>
+    <div class="details-grid">
+      <section class="detail-panel">
+        <h2>Items</h2>
+        <div class="item-row" *ngFor="let item of current.items">
+          <div>
+            <strong>{{ item.productName }}</strong
+            ><small
+              >Product #{{ item.productId }} · Qty {{ item.quantity }} ×
+              {{ item.unitPrice | currency: 'RON' : 'code' : '1.2-2' }}</small
+            >
+          </div>
+          <strong>{{ item.lineTotal | currency: 'RON' : 'code' : '1.2-2' }}</strong>
+        </div>
+        <div class="totals">
+          <p>
+            <span>Subtotal</span
+            ><strong>{{ current.subtotal | currency: 'RON' : 'code' : '1.2-2' }}</strong>
+          </p>
+          <p>
+            <span>Delivery</span
+            ><strong>{{ current.deliveryCost | currency: 'RON' : 'code' : '1.2-2' }}</strong>
+          </p>
+          <p class="grand-total">
+            <span>Total</span
+            ><strong>{{ current.total | currency: 'RON' : 'code' : '1.2-2' }}</strong>
+          </p>
+        </div>
+      </section>
+      <section class="detail-panel">
+        <h2>Delivery</h2>
+        <p>
+          <strong>{{ current.shippingFullName }}</strong>
+        </p>
+        <p>
+          {{ current.shippingStreet }}<br />{{ current.shippingCity }}, {{ current.shippingCounty }}
+          {{ current.shippingPostalCode }}<br />{{ current.shippingCountry }}
+        </p>
+        <p>{{ current.deliveryMethodName }}</p>
+        <hr />
+        <h2>Payment</h2>
+        <p>
+          {{ current.paymentMethod === 'card' ? 'Card' : 'Cash on delivery' }} ·
+          {{ current.paymentStatus }}
+        </p>
+        <p *ngIf="current.notes">Note: {{ current.notes }}</p>
+      </section>
+    </div>
+  </ng-container>
+</section>

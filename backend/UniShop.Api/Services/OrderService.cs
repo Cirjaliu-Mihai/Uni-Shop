@@ -156,7 +156,87 @@ public sealed class OrderService(AppDbContext dbContext, IPaymentGateway payment
         return order is null ? null : ToDto(order, order.Payment.Status);
     }
 
-    private static OrderDto ToDto(Order order, PaymentStatus paymentStatus) => new(
+    public async Task<PagedResult<OrderListDto>> GetOrdersAsync(
+        string userId,
+        OrderHistoryQuery query,
+        CancellationToken cancellationToken)
+    {
+        var orders = dbContext.Orders.AsNoTracking().Where(order => order.UserId == userId);
+        if (query.Status is OrderStatus status)
+        {
+            orders = orders.Where(order => order.Status == status);
+        }
+
+        var totalCount = await orders.CountAsync(cancellationToken);
+        var page = Math.Max(query.Page ?? 1, 1);
+        var pageSize = Math.Clamp(query.PageSize ?? 10, 1, 50);
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        var skip = (long)(page - 1) * pageSize;
+        var items = skip >= totalCount
+            ? []
+            : await orders
+                .OrderByDescending(order => order.CreatedAt)
+                .ThenByDescending(order => order.Id)
+                .Skip((int)skip)
+                .Take(pageSize)
+                .Select(order => new OrderListDto(
+                    order.Id,
+                    order.ContactEmail,
+                    order.CreatedAt,
+                    order.Status,
+                    order.Items.Sum(item => item.Quantity),
+                    order.Total,
+                    order.PaymentMethod,
+                    order.Payment.Status))
+                .ToListAsync(cancellationToken);
+
+        return new PagedResult<OrderListDto>(items, page, pageSize, totalCount, totalPages);
+    }
+
+    public async Task<OrderDto?> CancelOrderAsync(string userId, int orderId, CancellationToken cancellationToken)
+    {
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        var order = await dbContext.Orders
+            .Include(item => item.Items)
+            .Include(item => item.Payment)
+            .SingleOrDefaultAsync(item => item.Id == orderId && item.UserId == userId, cancellationToken);
+        if (order is null)
+        {
+            return null;
+        }
+        if (order.Status != OrderStatus.Processing)
+        {
+            throw new ShoppingConflictException("Only processing orders can be cancelled by the customer.");
+        }
+
+        var claimed = await dbContext.Orders
+            .Where(item => item.Id == orderId && item.UserId == userId && item.Status == OrderStatus.Processing)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(item => item.Status, OrderStatus.Cancelled), cancellationToken);
+        if (claimed == 0)
+        {
+            throw new ShoppingConflictException("The order status changed; refresh the order before trying again.");
+        }
+
+        foreach (var item in order.Items)
+        {
+            await dbContext.Products
+                .Where(product => product.Id == item.ProductId)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(product => product.Stock, product => product.Stock + item.Quantity)
+                    .SetProperty(product => product.UpdatedAt, DateTimeOffset.UtcNow), cancellationToken);
+        }
+
+        order.Status = OrderStatus.Cancelled;
+        if (order.Payment.Status == PaymentStatus.Paid)
+        {
+            order.Payment.Status = PaymentStatus.Refunded;
+        }
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return ToDto(order, order.Payment.Status);
+    }
+
+    internal static OrderDto ToDto(Order order, PaymentStatus paymentStatus) => new(
         order.Id,
         order.CreatedAt,
         order.Status,

@@ -113,9 +113,65 @@ export class ProductAdminListComponent implements OnInit {
               this.snackBar.open('Product deleted.', 'Dismiss', { duration: 3000 });
               this.loadProducts();
             },
-            error: (error) =>
+            error: (error) => this.handleDeleteError(product, error),
+          });
+      });
+  }
+
+  saveStock(product: AdminProductListItem, value: string): void {
+    const stock = Number(value);
+    if (!Number.isInteger(stock) || stock < 0) {
+      this.snackBar.open('Stock must be a non-negative whole number.', 'Dismiss', {
+        duration: 4000,
+      });
+      return;
+    }
+    this.productService
+      .updateStock(product.id, stock)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          product.stock = stock;
+          this.snackBar.open('Stock updated.', 'Dismiss', { duration: 2500 });
+          this.changeDetectorRef.markForCheck();
+        },
+        error: (error) =>
+          this.snackBar.open(this.readError(error, 'Could not update stock.'), 'Dismiss', {
+            duration: 5000,
+          }),
+      });
+  }
+
+  private handleDeleteError(product: AdminProductListItem, error: unknown): void {
+    if (!(error instanceof HttpErrorResponse) || error.status !== 409) {
+      this.snackBar.open(this.readError(error, 'Could not delete the product.'), 'Dismiss', {
+        duration: 5000,
+      });
+      return;
+    }
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        data: {
+          title: 'Product is in order history',
+          message: this.readError(error, 'This product cannot be deleted. Deactivate it instead?'),
+          confirmLabel: 'Deactivate product',
+        },
+      })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
+        this.productService
+          .deactivateProduct(product.id)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.snackBar.open('Product deactivated.', 'Dismiss', { duration: 3000 });
+              this.loadProducts();
+            },
+            error: (deactivateError) =>
               this.snackBar.open(
-                this.readError(error, 'Could not delete the product.'),
+                this.readError(deactivateError, 'Could not deactivate the product.'),
                 'Dismiss',
                 { duration: 5000 },
               ),

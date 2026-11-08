@@ -3,6 +3,7 @@ export interface CategoryListItem {
   name: string;
   description: string | null;
   productCount: number;
+  imageUrl: string | null;
 }
 
 export interface ProductListItem {

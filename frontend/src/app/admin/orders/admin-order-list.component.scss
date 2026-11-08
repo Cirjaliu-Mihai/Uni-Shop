@@ -1,0 +1,83 @@
+.admin-page {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.page-heading {
+  margin-bottom: 22px;
+}
+.page-heading h1 {
+  margin: 4px 0;
+}
+.page-heading p,
+.eyebrow {
+  color: #64746b;
+}
+.eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+}
+.table-panel {
+  border: 1px solid #dfe5e0;
+  background: #fff;
+}
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 18px 18px 0;
+}
+.filters mat-form-field {
+  width: 160px;
+}
+.filters .search-field {
+  width: min(320px, 100%);
+}
+.filters .date-range-field {
+  width: 300px;
+}
+.table-count {
+  margin-left: auto;
+  color: #64746b;
+}
+.table-state {
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.error-state {
+  color: #a22d2d;
+}
+.table-scroll {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+}
+td small {
+  display: block;
+  color: #77827a;
+}
+.status-pill {
+  text-transform: capitalize;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #e8eee9;
+}
+@media (max-width: 700px) {
+  .filters {
+    align-items: stretch;
+  }
+  .filters mat-form-field,
+  .filters .search-field {
+    width: calc(50% - 6px);
+  }
+  .filters .date-range-field {
+    width: 100%;
+  }
+  .table-count {
+    width: 100%;
+  }
+}

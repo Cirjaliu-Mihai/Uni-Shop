@@ -60,6 +60,10 @@ Development defaults seed the admin account `admin@unishop.local` with password 
 Aplicatia va fi disponibila la `http://localhost:4200`, iar API-ul la `http://localhost:5000`.
 PostgreSQL este disponibil pe portul `5433`. In Development, documentatia OpenAPI este la `http://localhost:5000/openapi/v1.json`, iar Scalar UI la `http://localhost:5000/scalar`.
 
+Sample product and category photos use direct Unsplash image URLs, so no image files are stored in the repository or API container. They require an internet connection and are subject to Unsplash availability and licensing terms.
+
+Representative sample photos: [laptop](https://images.unsplash.com/photo-1496181133206-80ce9b88a853), [phone](https://images.unsplash.com/photo-1511707171634-5f897ff02aa9), and [headphones](https://images.unsplash.com/photo-1505740420928-5e560c06d30e), from [Unsplash](https://unsplash.com/license).
+
 ## Backend si date initiale
 
 In dezvoltare, API-ul aplica migratiile si insereaza datele initiale la pornire. Pentru a inlocui credentialele locale implicite, configureaza user-secrets din directorul `backend/UniShop.Api`:

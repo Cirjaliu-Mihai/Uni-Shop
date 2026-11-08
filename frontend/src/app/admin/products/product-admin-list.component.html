@@ -63,7 +63,25 @@
 
         <ng-container matColumnDef="stock">
           <th mat-header-cell *matHeaderCellDef>Stock</th>
-          <td mat-cell *matCellDef="let product">{{ product.stock }}</td>
+          <td mat-cell *matCellDef="let product" class="stock-cell">
+            <input
+              #stockInput
+              type="number"
+              min="0"
+              step="1"
+              [value]="product.stock"
+              [attr.aria-label]="'Stock for ' + product.name"
+            />
+            <button
+              mat-icon-button
+              type="button"
+              matTooltip="Save stock"
+              [attr.aria-label]="'Save stock for ' + product.name"
+              (click)="saveStock(product, stockInput.value)"
+            >
+              <mat-icon>save</mat-icon>
+            </button>
+          </td>
         </ng-container>
 
         <ng-container matColumnDef="status">

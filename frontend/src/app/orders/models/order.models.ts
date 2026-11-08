@@ -45,6 +45,25 @@ export interface Order {
   items: OrderItem[];
 }
 
+export interface OrderListItem {
+  id: number;
+  contactEmail: string;
+  createdAt: string;
+  status: OrderStatus;
+  itemCount: number;
+  total: number;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+}
+
+export interface OrderPage {
+  items: OrderListItem[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+}
+
 export interface CreateOrderRequest {
   addressId: number;
   contact: {

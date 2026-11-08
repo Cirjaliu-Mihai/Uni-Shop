@@ -8,6 +8,38 @@
     <span class="catalog-count" *ngIf="!loading">{{ totalCount }} items</span>
   </header>
 
+  <section class="category-catalog" aria-labelledby="category-catalog-heading">
+    <div class="category-catalog-heading">
+      <div>
+        <p class="eyebrow">BROWSE THE RANGE</p>
+        <h2 id="category-catalog-heading">Shop by category</h2>
+      </div>
+      <button mat-button type="button" (click)="selectCategory(null)">All products</button>
+    </div>
+    <div class="category-catalog-grid">
+      <button
+        *ngFor="let category of categories"
+        type="button"
+        class="category-tile"
+        [class.selected]="filtersForm.controls.categoryId.value === category.id"
+        [attr.aria-pressed]="filtersForm.controls.categoryId.value === category.id"
+        (click)="selectCategory(category.id)"
+      >
+        <span class="category-tile-image">
+          <img
+            *ngIf="category.imageUrl; else categoryImagePlaceholder"
+            [src]="category.imageUrl"
+            [alt]=""
+          />
+          <ng-template #categoryImagePlaceholder><mat-icon>category</mat-icon></ng-template>
+          <span class="category-tile-shade"></span>
+          <span class="category-tile-name">{{ category.name }}</span>
+        </span>
+        <span class="category-tile-count">{{ category.productCount }} products</span>
+      </button>
+    </div>
+  </section>
+
   <div class="catalog-layout">
     <aside class="filter-panel" aria-label="Product filters">
       <div class="filter-heading">

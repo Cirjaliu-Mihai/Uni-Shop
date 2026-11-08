@@ -1,7 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { CreateOrderRequest, DeliveryOption, Order } from '../models/order.models';
+import { HttpParams } from '@angular/common/http';
+import {
+  CreateOrderRequest,
+  DeliveryOption,
+  Order,
+  OrderPage,
+  OrderStatus,
+} from '../models/order.models';
 
 const apiUrl = 'http://localhost:5000/api';
 
@@ -19,5 +26,15 @@ export class OrderService {
 
   getOrder(id: number): Observable<Order> {
     return this.http.get<Order>(`${apiUrl}/orders/${id}`);
+  }
+
+  getOrders(page: number, pageSize: number, status: OrderStatus | 'all'): Observable<OrderPage> {
+    let params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    if (status !== 'all') params = params.set('status', status);
+    return this.http.get<OrderPage>(`${apiUrl}/orders`, { params });
+  }
+
+  cancelOrder(id: number): Observable<Order> {
+    return this.http.post<Order>(`${apiUrl}/orders/${id}/cancel`, {});
   }
 }

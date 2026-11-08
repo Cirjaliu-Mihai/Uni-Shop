@@ -22,6 +22,15 @@ const routes: Routes = [
   },
   {
     path: 'checkout',
+    redirectTo: 'orders/checkout',
+    pathMatch: 'full',
+  },
+  {
+    path: 'checkout/confirmation/:id',
+    redirectTo: 'orders/confirmation/:id',
+  },
+  {
+    path: 'orders',
     canActivate: [authGuard],
     loadChildren: () => import('./orders/orders.module').then((module) => module.OrdersModule),
   },

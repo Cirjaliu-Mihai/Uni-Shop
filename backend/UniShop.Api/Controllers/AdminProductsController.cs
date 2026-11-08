@@ -65,6 +65,23 @@ public sealed class AdminProductsController(IAdminProductService productService)
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> DeleteProduct(int id, CancellationToken cancellationToken) =>
         await productService.DeleteProductAsync(id, cancellationToken) ? NoContent() : NotFound();
+
+    [HttpPatch("{id:int}/active")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeactivateProduct(int id, CancellationToken cancellationToken) =>
+        await productService.DeactivateProductAsync(id, cancellationToken) ? NoContent() : NotFound();
+
+    [HttpPatch("{id:int}/stock")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateStock(
+        int id,
+        UpdateProductStockRequest request,
+        CancellationToken cancellationToken) =>
+        await productService.UpdateStockAsync(id, request.Stock!.Value, cancellationToken) ? NoContent() : NotFound();
 }

@@ -172,7 +172,7 @@ export class CheckoutComponent implements OnInit {
       next: (order) => {
         this.saving = false;
         this.cartService.refresh().subscribe();
-        void this.router.navigate(['/checkout/confirmation', order.id]);
+        void this.router.navigate(['/orders/confirmation', order.id]);
         this.changeDetectorRef.markForCheck();
       },
       error: (error) => {

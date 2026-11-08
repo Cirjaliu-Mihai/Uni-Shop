@@ -39,4 +39,12 @@ export class AdminProductService {
   deleteProduct(id: number): Observable<void> {
     return this.http.delete<void>(`${apiUrl}/${id}`);
   }
+
+  deactivateProduct(id: number): Observable<void> {
+    return this.http.patch<void>(`${apiUrl}/${id}/active`, {});
+  }
+
+  updateStock(id: number, stock: number): Observable<void> {
+    return this.http.patch<void>(`${apiUrl}/${id}/stock`, { stock });
+  }
 }

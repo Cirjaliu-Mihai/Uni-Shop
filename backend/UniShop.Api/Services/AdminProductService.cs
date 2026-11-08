@@ -165,10 +165,34 @@ public sealed class AdminProductService(AppDbContext dbContext) : IAdminProductS
         {
             return false;
         }
+        if (await dbContext.OrderItems.AnyAsync(item => item.ProductId == id, cancellationToken))
+        {
+            throw new AdminConflictException("This product appears in order history. Deactivate it instead of deleting it.");
+        }
 
         dbContext.Products.Remove(product);
         await dbContext.SaveChangesAsync(cancellationToken);
         return true;
+    }
+
+    public async Task<bool> DeactivateProductAsync(int id, CancellationToken cancellationToken)
+    {
+        var product = await dbContext.Products.FindAsync([id], cancellationToken);
+        if (product is null) return false;
+        product.IsActive = false;
+        product.UpdatedAt = DateTimeOffset.UtcNow;
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> UpdateStockAsync(int id, int stock, CancellationToken cancellationToken)
+    {
+        var affectedRows = await dbContext.Products
+            .Where(product => product.Id == id)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(product => product.Stock, stock)
+                .SetProperty(product => product.UpdatedAt, DateTimeOffset.UtcNow), cancellationToken);
+        return affectedRows > 0;
     }
 
     private void ApplyRequest(Product product, ProductWriteRequest request)

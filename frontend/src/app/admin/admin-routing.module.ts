@@ -4,6 +4,8 @@ import { AdminLayoutComponent } from './layout/admin-layout.component';
 import { ProductAdminListComponent } from './products/product-admin-list.component';
 import { ProductFormComponent } from './products/product-form.component';
 import { ReferenceDataAdminComponent } from './references/reference-data-admin.component';
+import { AdminOrderDetailsComponent } from './orders/admin-order-details.component';
+import { AdminOrderListComponent } from './orders/admin-order-list.component';
 
 const routes: Routes = [
   {
@@ -13,6 +15,8 @@ const routes: Routes = [
       { path: '', component: ProductAdminListComponent },
       { path: 'products/new', component: ProductFormComponent },
       { path: 'products/:id/edit', component: ProductFormComponent },
+      { path: 'orders', component: AdminOrderListComponent },
+      { path: 'orders/:id', component: AdminOrderDetailsComponent },
       { path: 'references', component: ReferenceDataAdminComponent },
       { path: '**', redirectTo: '' },
     ],

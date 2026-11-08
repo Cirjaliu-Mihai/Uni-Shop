@@ -140,6 +140,72 @@ public class OrderApiTests(PostgresFixture fixture) : IClassFixture<PostgresFixt
         Assert.Equal(methodIds.Order(), options!.Select(option => option.Id).Order());
     }
 
+    [Fact]
+    public async Task Customer_order_history_is_private_and_cancellation_refunds_and_restocks_once()
+    {
+        using var buyer = await CreateClientAsync();
+        using var otherBuyer = await CreateClientAsync();
+        var productId = await CreateProductAsync(stock: 5, price: 21m);
+        var order = await CreateOrderAsync(buyer.Client, productId, quantity: 2, paymentMethod: "card");
+        var foreignOrder = await CreateOrderAsync(otherBuyer.Client, productId, quantity: 1, paymentMethod: "card");
+
+        var history = await buyer.Client.GetFromJsonAsync<PagedResult<OrderListDto>>("/api/orders?page=1&pageSize=50", ResponseJsonOptions);
+        using var foreignDetail = await buyer.Client.GetAsync($"/api/orders/{foreignOrder.Id}");
+        using var cancelResponse = await buyer.Client.PostAsync($"/api/orders/{order.Id}/cancel", null);
+        var cancelled = await cancelResponse.Content.ReadFromJsonAsync<OrderDto>(ResponseJsonOptions);
+        using var duplicateCancel = await buyer.Client.PostAsync($"/api/orders/{order.Id}/cancel", null);
+
+        Assert.Contains(history!.Items, item => item.Id == order.Id);
+        Assert.DoesNotContain(history.Items, item => item.Id == foreignOrder.Id);
+        Assert.Equal(HttpStatusCode.NotFound, foreignDetail.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, cancelResponse.StatusCode);
+        Assert.Equal(OrderStatus.Cancelled, cancelled!.Status);
+        Assert.Equal(PaymentStatus.Refunded, cancelled.PaymentStatus);
+        Assert.Equal(HttpStatusCode.Conflict, duplicateCancel.StatusCode);
+        Assert.Equal(4, await GetStockAsync(productId));
+    }
+
+    [Fact]
+    public async Task Admin_transitions_are_enforced_and_cancellation_restocks()
+    {
+        using var buyer = await CreateClientAsync();
+        using var admin = await CreateAdminClientAsync();
+        var productId = await CreateProductAsync(stock: 5, price: 16m);
+        var order = await CreateOrderAsync(buyer.Client, productId, quantity: 2, paymentMethod: "card");
+
+        using var shippedResponse = await admin.PatchAsJsonAsync($"/api/admin/orders/{order.Id}/status", new { status = "shipped" });
+        var shipped = await shippedResponse.Content.ReadFromJsonAsync<OrderDto>(ResponseJsonOptions);
+        using var deliveredResponse = await admin.PatchAsJsonAsync($"/api/admin/orders/{order.Id}/status", new { status = "delivered" });
+        using var invalidResponse = await admin.PatchAsJsonAsync($"/api/admin/orders/{order.Id}/status", new { status = "cancelled" });
+        var otherOrder = await CreateOrderAsync(buyer.Client, productId, quantity: 1, paymentMethod: "card");
+        using var cancelledResponse = await admin.PatchAsJsonAsync($"/api/admin/orders/{otherOrder.Id}/status", new { status = "cancelled" });
+
+        Assert.Equal(HttpStatusCode.OK, shippedResponse.StatusCode);
+        Assert.Equal(OrderStatus.Shipped, shipped!.Status);
+        Assert.Equal(HttpStatusCode.OK, deliveredResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, invalidResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, cancelledResponse.StatusCode);
+        Assert.Equal(3, await GetStockAsync(productId));
+    }
+
+    [Fact]
+    public async Task Delivered_cash_on_delivery_order_becomes_paid()
+    {
+        using var buyer = await CreateClientAsync();
+        using var admin = await CreateAdminClientAsync();
+        var productId = await CreateProductAsync(stock: 3, price: 19m);
+        var order = await CreateOrderAsync(buyer.Client, productId, quantity: 1, paymentMethod: "cashOnDelivery");
+        Assert.Equal(PaymentStatus.Pending, order.PaymentStatus);
+
+        using var shipped = await admin.PatchAsJsonAsync($"/api/admin/orders/{order.Id}/status", new { status = "shipped" });
+        using var delivered = await admin.PatchAsJsonAsync($"/api/admin/orders/{order.Id}/status", new { status = "delivered" });
+        var updated = await delivered.Content.ReadFromJsonAsync<OrderDto>(ResponseJsonOptions);
+
+        Assert.Equal(HttpStatusCode.OK, shipped.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, delivered.StatusCode);
+        Assert.Equal(PaymentStatus.Paid, updated!.PaymentStatus);
+    }
+
     private async Task<TestClient> CreateClientAsync()
     {
         var client = fixture.Factory.CreateClient();
@@ -153,6 +219,36 @@ public class OrderApiTests(PostgresFixture fixture) : IClassFixture<PostgresFixt
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth!.Token);
         return new TestClient(client, auth.User.Id);
+    }
+
+    private async Task<HttpClient> CreateAdminClientAsync()
+    {
+        var client = fixture.Factory.CreateClient();
+        using var response = await client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email = "admin@unishop.test",
+            password = "AdminPass123!"
+        });
+        var auth = await response.Content.ReadFromJsonAsync<AuthResponse>();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth!.Token);
+        return client;
+    }
+
+    private async Task<OrderDto> CreateOrderAsync(HttpClient client, int productId, int quantity, string paymentMethod)
+    {
+        var address = await CreateAddressAsync(client);
+        var deliveryMethodId = await AddCartItemAndGetDeliveryMethodAsync(client, productId, quantity);
+        using var response = await client.PostAsJsonAsync("/api/orders", new
+        {
+            addressId = address.Id,
+            contact = new { fullName = "Order Integration Test", email = "order@example.test", phone = "+40 721 000 111" },
+            deliveryMethodId,
+            paymentMethod,
+            notes = (string?)null
+        });
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        return (await response.Content.ReadFromJsonAsync<OrderDto>(ResponseJsonOptions))!;
     }
 
     private static async Task<AddressDto> CreateAddressAsync(HttpClient client)

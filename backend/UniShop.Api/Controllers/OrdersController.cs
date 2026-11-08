@@ -12,6 +12,16 @@ namespace UniShop.Api.Controllers;
 [Route("api/orders")]
 public sealed class OrdersController(IOrderService orderService) : ControllerBase
 {
+    [HttpGet]
+    [ProducesResponseType<PagedResult<OrderListDto>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedResult<OrderListDto>>> GetOrders(
+        [FromQuery] OrderHistoryQuery query,
+        CancellationToken cancellationToken)
+    {
+        var userId = GetUserId();
+        return userId is null ? Unauthorized() : Ok(await orderService.GetOrdersAsync(userId, query, cancellationToken));
+    }
+
     [HttpPost]
     [ProducesResponseType<OrderDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
@@ -39,6 +49,18 @@ public sealed class OrdersController(IOrderService orderService) : ControllerBas
         var userId = GetUserId();
         if (userId is null) return Unauthorized();
         var order = await orderService.GetOrderAsync(userId, id, cancellationToken);
+        return order is null ? NotFound() : Ok(order);
+    }
+
+    [HttpPost("{id:int}/cancel")]
+    [ProducesResponseType<OrderDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<OrderDto>> CancelOrder(int id, CancellationToken cancellationToken)
+    {
+        var userId = GetUserId();
+        if (userId is null) return Unauthorized();
+        var order = await orderService.CancelOrderAsync(userId, id, cancellationToken);
         return order is null ? NotFound() : Ok(order);
     }
 

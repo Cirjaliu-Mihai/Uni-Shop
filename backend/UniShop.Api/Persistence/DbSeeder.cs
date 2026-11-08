@@ -54,6 +54,7 @@ public static class DbSeeder
 
         if (await db.Categories.AnyAsync())
         {
+            await SeedCatalogExpansionAsync(db, logger);
             return;
         }
 
@@ -104,6 +105,7 @@ public static class DbSeeder
 
         await db.Products.AddRangeAsync(products);
         await db.SaveChangesAsync();
+        await SeedCatalogExpansionAsync(db, logger);
 
         Product Product(string name, string description, decimal price, int stock, int categoryIndex, int supplierIndex, params (string Key, string Value)[] specifications)
         {
@@ -113,6 +115,7 @@ public static class DbSeeder
                 Description = description,
                 Price = price,
                 Stock = stock,
+                ImageUrl = GetImageUrl(name),
                 Category = categories[categoryIndex],
                 Supplier = suppliers[supplierIndex],
                 Specifications = specifications.ToDictionary(pair => pair.Key, pair => pair.Value)
@@ -122,6 +125,131 @@ public static class DbSeeder
             product.DeliveryMethods.Add(deliveryMethods[2]);
             return product;
         }
+
+        string? GetImageUrl(string name) => name switch
+        {
+            "North 14 Laptop" => "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=900&q=80",
+            "North 16 Laptop" => "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&q=80",
+            "Compact Desktop" => "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&w=900&q=80",
+            "Everyday Phone" => "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80",
+            "Pro Phone" => "https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=900&q=80",
+            "Fold Phone" => "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&w=900&q=80",
+            "Studio Headphones" => "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80",
+            "Wireless Earbuds" => "https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?auto=format&fit=crop&w=900&q=80",
+            "Desk Speaker" => "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=900&q=80",
+            "USB-C Hub" => "https://images.unsplash.com/photo-1625842268584-8f3296236761?auto=format&fit=crop&w=900&q=80",
+            "Wireless Mouse" => "https://images.unsplash.com/photo-1527814050087-3793815479db?auto=format&fit=crop&w=900&q=80",
+            "Mechanical Keyboard" => "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=900&q=80",
+            "Smart Bulb Set" => "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=900&q=80",
+            "Indoor Camera" => "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=900&q=80",
+            "Smart Plug" => "https://images.unsplash.com/photo-1558002038-1055907df827?auto=format&fit=crop&w=900&q=80",
+            _ => null
+        };
+    }
+
+    private static async Task SeedCatalogExpansionAsync(AppDbContext db, ILogger logger)
+    {
+        var categorySeeds = new[]
+        {
+            new Category { Name = "Gaming", Description = "Consoles and gear for play" },
+            new Category { Name = "Wearables", Description = "Smartwatches and fitness trackers" },
+            new Category { Name = "Photography", Description = "Cameras and photography gear" }
+        };
+
+        foreach (var category in categorySeeds)
+        {
+            if (!await db.Categories.AnyAsync(item => item.Name == category.Name))
+            {
+                db.Categories.Add(category);
+            }
+        }
+        await db.SaveChangesAsync();
+
+        var categories = await db.Categories.ToDictionaryAsync(category => category.Name);
+        var suppliers = await db.Suppliers.OrderBy(supplier => supplier.Id).ToListAsync();
+        var deliveryMethods = await db.DeliveryMethods.OrderBy(method => method.Id).ToListAsync();
+        if (suppliers.Count == 0 || deliveryMethods.Count == 0)
+        {
+            logger.LogWarning("Additional sample products were not seeded because suppliers or delivery methods are missing.");
+            return;
+        }
+
+        var productSeeds = new[]
+        {
+            new Product
+            {
+                Name = "Orbit Game Console", Description = "A living-room console for fast, detailed games.", Price = 2299m, Stock = 7,
+                ImageUrl = "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=900&q=80",
+                CategoryId = categories["Gaming"].Id, SupplierId = suppliers[0].Id,
+                Specifications = new Dictionary<string, string> { ["Storage"] = "1 TB", ["Resolution"] = "4K" }, DeliveryMethods = deliveryMethods
+            },
+            new Product
+            {
+                Name = "Arcade Wireless Controller", Description = "A comfortable wireless controller with responsive buttons.", Price = 299m, Stock = 20,
+                ImageUrl = "https://images.unsplash.com/photo-1592840496694-26d035b52b48?auto=format&fit=crop&w=900&q=80",
+                CategoryId = categories["Gaming"].Id, SupplierId = suppliers[1 % suppliers.Count].Id,
+                Specifications = new Dictionary<string, string> { ["Connection"] = "Wireless", ["Battery"] = "Rechargeable" }, DeliveryMethods = deliveryMethods
+            },
+            new Product
+            {
+                Name = "Tournament Gaming Headset", Description = "A closed-back headset for clear team chat and focused play.", Price = 549m, Stock = 15,
+                ImageUrl = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80",
+                CategoryId = categories["Gaming"].Id, SupplierId = suppliers[2 % suppliers.Count].Id,
+                Specifications = new Dictionary<string, string> { ["Connection"] = "Wireless", ["Microphone"] = "Detachable" }, DeliveryMethods = deliveryMethods
+            },
+            new Product
+            {
+                Name = "Summit Smartwatch", Description = "A daily smartwatch for notifications, activity and sleep tracking.", Price = 899m, Stock = 13,
+                ImageUrl = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=80",
+                CategoryId = categories["Wearables"].Id, SupplierId = suppliers[0].Id,
+                Specifications = new Dictionary<string, string> { ["Display"] = "AMOLED", ["Water resistance"] = "5 ATM" }, DeliveryMethods = deliveryMethods
+            },
+            new Product
+            {
+                Name = "Active GPS Watch", Description = "A lightweight GPS watch for runs and outdoor training.", Price = 1199m, Stock = 10,
+                ImageUrl = "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?auto=format&fit=crop&w=900&q=80",
+                CategoryId = categories["Wearables"].Id, SupplierId = suppliers[1 % suppliers.Count].Id,
+                Specifications = new Dictionary<string, string> { ["GPS"] = "Multi-band", ["Battery"] = "7 days" }, DeliveryMethods = deliveryMethods
+            },
+            new Product
+            {
+                Name = "Pulse Fitness Band", Description = "A simple fitness band for step, heart-rate and sleep tracking.", Price = 349m, Stock = 24,
+                ImageUrl = "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=900&q=80",
+                CategoryId = categories["Wearables"].Id, SupplierId = suppliers[2 % suppliers.Count].Id,
+                Specifications = new Dictionary<string, string> { ["Battery"] = "10 days", ["Water resistance"] = "5 ATM" }, DeliveryMethods = deliveryMethods
+            },
+            new Product
+            {
+                Name = "Vista Mirrorless Camera", Description = "A compact mirrorless camera for travel and everyday photography.", Price = 3499m, Stock = 6,
+                ImageUrl = "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&w=900&q=80",
+                CategoryId = categories["Photography"].Id, SupplierId = suppliers[0].Id,
+                Specifications = new Dictionary<string, string> { ["Resolution"] = "24 MP", ["Video"] = "4K" }, DeliveryMethods = deliveryMethods
+            },
+            new Product
+            {
+                Name = "Field DSLR Camera", Description = "A dependable DSLR camera for learning and creative work.", Price = 2799m, Stock = 5,
+                ImageUrl = "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=900&q=80",
+                CategoryId = categories["Photography"].Id, SupplierId = suppliers[1 % suppliers.Count].Id,
+                Specifications = new Dictionary<string, string> { ["Resolution"] = "24 MP", ["Lens mount"] = "Interchangeable" }, DeliveryMethods = deliveryMethods
+            },
+            new Product
+            {
+                Name = "35mm Portrait Lens", Description = "A bright prime lens for portraits and low-light photography.", Price = 1599m, Stock = 8,
+                ImageUrl = "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&w=900&q=80",
+                CategoryId = categories["Photography"].Id, SupplierId = suppliers[2 % suppliers.Count].Id,
+                Specifications = new Dictionary<string, string> { ["Focal length"] = "35 mm", ["Aperture"] = "f/1.8" }, DeliveryMethods = deliveryMethods
+            }
+        };
+
+        foreach (var product in productSeeds)
+        {
+            if (!await db.Products.AnyAsync(item => item.Name == product.Name))
+            {
+                db.Products.Add(product);
+            }
+        }
+
+        await db.SaveChangesAsync();
     }
 
     private static void EnsureSucceeded(IdentityResult result, string message)

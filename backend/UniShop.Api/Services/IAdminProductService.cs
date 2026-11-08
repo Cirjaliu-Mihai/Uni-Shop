@@ -10,4 +10,6 @@ public interface IAdminProductService
     Task<AdminProductDto> CreateProductAsync(ProductWriteRequest request, CancellationToken cancellationToken);
     Task<AdminProductDto?> UpdateProductAsync(int id, ProductWriteRequest request, CancellationToken cancellationToken);
     Task<bool> DeleteProductAsync(int id, CancellationToken cancellationToken);
+    Task<bool> DeactivateProductAsync(int id, CancellationToken cancellationToken);
+    Task<bool> UpdateStockAsync(int id, int stock, CancellationToken cancellationToken);
 }
